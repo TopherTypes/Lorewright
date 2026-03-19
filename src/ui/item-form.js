@@ -4,7 +4,7 @@
 // and navigation between new/existing item routes.
 
 import { getItemById, saveItem } from '../storage/items.js';
-import { createEmptyItem, generatePassphrase } from '../entities/item.js';
+import { createEmptyItem, generatePassphrase, computeAuraStrength } from '../entities/item.js';
 import { getViewRoot } from './shell.js';
 import {
   renderItemIdentitySection,
@@ -116,6 +116,11 @@ function attachFormListeners(root) {
       return; // readFormData already called above
     }
 
+    // Recompute aura and scroll cast DC when CL or magic school changes
+    if (event.target.dataset.field === 'cl' || event.target.dataset.field === 'magicSchool') {
+      updateComputedFields(form, root);
+    }
+
     const updated = readFormData(form, activeItem);
     activeItem = updated;
   });
@@ -187,6 +192,26 @@ function attachFormListeners(root) {
       window.location.hash = `#/item/${activeItem.meta.id}/print`;
     }
   });
+}
+
+function updateComputedFields(form, root) {
+  const clInput     = form.querySelector('[data-field="cl"]');
+  const schoolInput = form.querySelector('[data-field="magicSchool"]');
+  const cl     = parseInt(clInput?.value ?? '0', 10) || 0;
+  const school = schoolInput?.value ?? '';
+
+  const strength = computeAuraStrength(cl);
+  const aura = strength && school ? `${strength} ${school}` : (strength || school);
+
+  // Update aura display and hidden field
+  const auraDisplay = root.querySelector('#aura-display');
+  if (auraDisplay) auraDisplay.textContent = aura || '—';
+  const auraHidden = form.querySelector('[data-field="aura"]');
+  if (auraHidden) auraHidden.value = aura;
+
+  // Update scroll Cast DC display
+  const castDcEl = root.querySelector('#scroll-castdc');
+  if (castDcEl) castDcEl.textContent = 5 + cl;
 }
 
 function attachSpellListListeners(form, root) {
