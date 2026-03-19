@@ -110,19 +110,23 @@
   flex-direction: column;
 }
 
-/* ── Print-only rules ──────────────────────────────────────── */
+/* ── Browser-print fallback ────────────────────────────────── */
+/* Primary PDF export is via jsPDF (Download PDF button).
+   These rules apply only when the user chooses Print… (window.print()). */
 
 @media print {
-  /* Hide all UI chrome when printing */
+  /* Hide all UI chrome */
   body > * {
     display: none !important;
   }
 
-  /* Show only the card wrapper */
+  /* Show the card — reset screen-zoom transform */
+  .card-preview-outer,
   .card-print-wrapper {
     display: block !important;
-    transform: none !important; /* Remove screen-zoom transform */
-    margin: 0 !important;
+    transform: none !important;
+    width: auto !important;
+    height: auto !important;
   }
 
   @page {

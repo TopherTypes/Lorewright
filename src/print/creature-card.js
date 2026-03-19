@@ -8,6 +8,7 @@ import { deriveCreature } from '../entities/creature.js';
 import { getViewRoot } from '../ui/shell.js';
 import { formatModifier, formatCR, formatSpeed, formatXP } from '../utils/formatters.js';
 import { navigate } from '../ui/router.js';
+import { downloadCreatureCardPDF } from './pdf-export.js';
 
 /**
  * Renders the print preview route (#/creature/:id/print).
@@ -41,14 +42,22 @@ export async function showPrintPreview(id) {
         <h1 class="page-title">Print Preview — ${escapeHtml(derived.name || 'Unnamed')}</h1>
         <div class="page-actions print-preview-controls">
           <a href="#/creature/${escapeHtml(id)}" class="btn btn-secondary">← Back to Edit</a>
-          <button class="btn btn-primary" onclick="window.print()">Print Card</button>
+          <button class="btn btn-primary" id="btn-download-pdf">Download PDF</button>
+          <button class="btn btn-secondary" id="btn-print-browser">Print…</button>
         </div>
       </div>
-      <div class="card-print-wrapper">
-        ${cardHtml}
+      <div class="card-preview-outer">
+        <div class="card-print-wrapper">
+          ${cardHtml}
+        </div>
       </div>
     </div>
   `;
+
+  root.querySelector('#btn-download-pdf')
+    .addEventListener('click', () => downloadCreatureCardPDF(derived));
+  root.querySelector('#btn-print-browser')
+    .addEventListener('click', () => window.print());
 }
 
 /**

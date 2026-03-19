@@ -8,6 +8,7 @@
 import { getItemById } from '../storage/items.js';
 import { getViewRoot } from '../ui/shell.js';
 import { navigate } from '../ui/router.js';
+import { downloadItemCardPDF } from './pdf-export.js';
 
 /**
  * Renders the print preview route (#/item/:id/print).
@@ -32,20 +33,30 @@ export async function showItemPrint(id) {
 
   const cardHtml = renderItemCard(item);
 
+  const cardCount = item.identified !== false ? '' : 's';
+
   root.innerHTML = `
     <div class="print-preview-page">
       <div class="page-header">
         <h1 class="page-title">Print Preview — ${escapeHtml(item.name || 'Unnamed')}</h1>
         <div class="page-actions print-preview-controls">
           <a href="#/item/${escapeHtml(id)}" class="btn btn-secondary">← Back to Edit</a>
-          <button class="btn btn-primary" onclick="window.print()">Print Card${item.identified !== false ? '' : 's'}</button>
+          <button class="btn btn-primary" id="btn-download-pdf">Download PDF</button>
+          <button class="btn btn-secondary" id="btn-print-browser">Print Card${cardCount}…</button>
         </div>
       </div>
-      <div class="card-print-wrapper">
-        ${cardHtml}
+      <div class="card-preview-outer">
+        <div class="card-print-wrapper">
+          ${cardHtml}
+        </div>
       </div>
     </div>
   `;
+
+  root.querySelector('#btn-download-pdf')
+    .addEventListener('click', () => downloadItemCardPDF(item));
+  root.querySelector('#btn-print-browser')
+    .addEventListener('click', () => window.print());
 }
 
 /**
