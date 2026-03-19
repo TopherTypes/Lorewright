@@ -84,16 +84,17 @@ export function renderItemCard(item) {
 // ── Identified card ───────────────────────────────────────
 
 function renderIdentifiedCard(item, showPassphrase) {
-  const typeLabel  = buildTypeLabel(item);
-  const statsLines = buildStatsLines(item);
-  const passLine   = showPassphrase && item.passphrase
+  const typeLabel   = buildTypeLabel(item);
+  const schoolGlyph = item.magicSchool ? getSchoolGlyph(item.magicSchool) : '';
+  const statsLines  = buildStatsLines(item);
+  const passLine    = showPassphrase && item.passphrase
     ? `<div class="card-passphrase">${escapeHtml(item.passphrase)}</div>`
     : '';
 
   return `
     <div class="item-card item-card--identified">
       <div class="card-header">
-        <div class="card-name">${escapeHtml(item.name || 'Unnamed Item')}</div>
+        <div class="card-name">${escapeHtml(item.name || 'Unnamed Item')}${schoolGlyph}</div>
         ${typeLabel ? `<div class="card-subtitle">${escapeHtml(typeLabel)}</div>` : ''}
       </div>
       <div class="card-body">
@@ -113,99 +114,166 @@ function buildTypeLabel(item) {
   return parts.filter(Boolean).join(' — ');
 }
 
+/**
+ * Builds stat lines grouped into two blocks:
+ *   1. Identification stats: Aura, CL, Price, Weight
+ *   2. Usage stats: type-specific (spell, charges, weapon stats, etc.)
+ * Separated by a double-line group rule when both blocks have content.
+ */
 function buildStatsLines(item) {
-  const lines = [];
+  const identLines = [];
+  const usageLines = [];
 
-  if (item.aura)  lines.push(`<b>Aura</b> ${escapeHtml(item.aura)}`);
-  if (item.cl)    lines.push(`<b>CL</b> ${escapeHtml(String(item.cl))}th`);
-  if (item.price) lines.push(`<b>Price</b> ${escapeHtml(item.price)}`);
-  if (item.weight) lines.push(`<b>Weight</b> ${escapeHtml(item.weight)}`);
+  if (item.aura)   identLines.push(`<b>Aura</b> ${escapeHtml(item.aura)}`);
+  if (item.cl)     identLines.push(`<b>CL</b> ${escapeHtml(String(item.cl))}th`);
+  if (item.price)  identLines.push(`<b>Price</b> ${escapeHtml(item.price)}`);
+  if (item.weight) identLines.push(`<b>Weight</b> ${escapeHtml(item.weight)}`);
 
-  // Type-specific stats
+  // Type-specific stats → usageLines
   switch (item.type) {
     case 'Potion':
       if (item.spell) {
         const lvl = item.spellLevel != null ? ` (${item.spellLevel})` : '';
-        lines.push(`<b>Spell</b> ${escapeHtml(item.spell)}${lvl}`);
+        usageLines.push(`<b>Spell</b> ${escapeHtml(item.spell)}${lvl}`);
       }
       break;
     case 'Scroll': {
       const castDC = 5 + (item.cl || 0);
-      lines.push(`<b>Cast DC</b> ${castDC}`);
+      usageLines.push(`<b>Cast DC</b> ${castDC}`);
       if (item.spell) {
         const lvl = item.spellLevel != null ? ` (${item.spellLevel}, ${item.scrollType})` : '';
-        lines.push(`<b>Spell</b> ${escapeHtml(item.spell)}${lvl}`);
+        usageLines.push(`<b>Spell</b> ${escapeHtml(item.spell)}${lvl}`);
       }
       break;
     }
     case 'Wand': {
       if (item.spell) {
-        lines.push(`<b>Spell</b> ${escapeHtml(item.spell)} (${item.spellLevel ?? 0})`);
+        usageLines.push(`<b>Spell</b> ${escapeHtml(item.spell)} (${item.spellLevel ?? 0})`);
       }
-      const total   = 50;
-      const used    = total - Math.min(Math.max(item.charges ?? 0, 0), total);
-      const boxes   = Array.from({ length: total }, (_, i) =>
-        `<span class="charge-box${i < used ? ' charge-box--used' : ''}"></span>`
-      ).join('');
-      lines.push(`<b>Charges</b> (${item.charges ?? 0}/50)<br><span class="charge-boxes">${boxes}</span>`);
+      usageLines.push(buildWandChargeTracker(item.charges));
       break;
     }
     case 'Staff':
-      lines.push(`<b>Charges</b> ${item.charges ?? 0}/10`);
+      usageLines.push(`<b>Charges</b> ${item.charges ?? 0}/10`);
       if (item.spellList?.length) {
         const spells = item.spellList
           .map(s => `${escapeHtml(s.spell)} (${s.level})`)
           .join(', ');
-        lines.push(`<b>Spells</b> ${spells}`);
+        usageLines.push(`<b>Spells</b> ${spells}`);
       }
       break;
     case 'Weapon':
-      if (item.weaponType)    lines.push(`<b>Weapon</b> ${escapeHtml(item.weaponType)}`);
-      if (item.weaponCategory) lines.push(`<b>Category</b> ${escapeHtml(item.weaponCategory)}`);
-      if (item.enhBonus)      lines.push(`<b>Enhancement</b> +${item.enhBonus}`);
+      if (item.weaponType)     usageLines.push(`<b>Weapon</b> ${escapeHtml(item.weaponType)}`);
+      if (item.weaponCategory) usageLines.push(`<b>Category</b> ${escapeHtml(item.weaponCategory)}`);
+      if (item.enhBonus)       usageLines.push(`<b>Enhancement</b> +${item.enhBonus}`);
       if (item.damageDice) {
         const dtype = item.damageType ? ` ${escapeHtml(item.damageType)}` : '';
-        lines.push(`<b>Damage</b> ${escapeHtml(item.damageDice)}${dtype}`);
+        usageLines.push(`<b>Damage</b> ${escapeHtml(item.damageDice)}${dtype}`);
       }
       if (item.critRange || item.critMultiplier) {
-        lines.push(`<b>Crit</b> ${escapeHtml(item.critRange || '20')}/\xd7${item.critMultiplier || 2}`);
+        usageLines.push(`<b>Crit</b> ${escapeHtml(item.critRange || '20')}/\xd7${item.critMultiplier || 2}`);
       }
-      if (item.specialAbilities) lines.push(`<b>Abilities</b> ${escapeHtml(item.specialAbilities)}`);
+      if (item.specialAbilities) usageLines.push(`<b>Abilities</b> ${escapeHtml(item.specialAbilities)}`);
       break;
     case 'Armour':
-      if (item.armourType)    lines.push(`<b>Armour</b> ${escapeHtml(item.armourType)}`);
-      if (item.armorCategory) lines.push(`<b>Category</b> ${escapeHtml(item.armorCategory)}`);
+      if (item.armourType)    usageLines.push(`<b>Armour</b> ${escapeHtml(item.armourType)}`);
+      if (item.armorCategory) usageLines.push(`<b>Category</b> ${escapeHtml(item.armorCategory)}`);
       if (item.acBonus) {
         const enh = item.enhBonus ? ` (+${item.enhBonus} enh)` : '';
-        lines.push(`<b>AC Bonus</b> +${item.acBonus}${enh}`);
+        usageLines.push(`<b>AC Bonus</b> +${item.acBonus}${enh}`);
       } else if (item.enhBonus) {
-        lines.push(`<b>Enhancement</b> +${item.enhBonus}`);
+        usageLines.push(`<b>Enhancement</b> +${item.enhBonus}`);
       }
       if (item.maxDexBonus !== '' && item.maxDexBonus != null)
-        lines.push(`<b>Max Dex</b> +${escapeHtml(String(item.maxDexBonus))}`);
+        usageLines.push(`<b>Max Dex</b> +${escapeHtml(String(item.maxDexBonus))}`);
       if (item.arcaneSpellFailure)
-        lines.push(`<b>Spell Failure</b> ${item.arcaneSpellFailure}%`);
+        usageLines.push(`<b>Spell Failure</b> ${item.arcaneSpellFailure}%`);
       if (item.armorCheckPenalty)
-        lines.push(`<b>Check Penalty</b> ${item.armorCheckPenalty}`);
-      if (item.specialAbilities) lines.push(`<b>Abilities</b> ${escapeHtml(item.specialAbilities)}`);
+        usageLines.push(`<b>Check Penalty</b> ${item.armorCheckPenalty}`);
+      if (item.specialAbilities) usageLines.push(`<b>Abilities</b> ${escapeHtml(item.specialAbilities)}`);
       break;
   }
 
-  return lines.map(l => `<div class="card-stat-line">${l}</div>`).join('');
+  const identHtml = identLines.map(l => `<div class="card-stat-line">${l}</div>`).join('');
+  const usageHtml = usageLines.map(l => `<div class="card-stat-line">${l}</div>`).join('');
+  const separator = (identLines.length && usageLines.length)
+    ? '<hr class="card-rule card-rule--group">'
+    : '';
+
+  return identHtml + separator + usageHtml;
+}
+
+/**
+ * Builds the wand charge tracker: a labelled header + two rows of 25 boxes.
+ * Boxes are 2mm × 2mm; 25 per row × 2mm + 24 × 0.35mm gap ≈ 58.4mm (fits 59mm).
+ * @param {number|null} charges  Remaining charges (0–50)
+ * @returns {string} HTML string for the charge section
+ */
+function buildWandChargeTracker(charges) {
+  const total     = 50;
+  const remaining = Math.min(Math.max(charges ?? 0, 0), total);
+  const used      = total - remaining;
+
+  const makeRow = (startIdx, count) =>
+    Array.from({ length: count }, (_, i) => {
+      const boxIdx = startIdx + i;
+      return `<span class="charge-box${boxIdx < used ? ' charge-box--used' : ''}"></span>`;
+    }).join('');
+
+  return `
+    <div class="charge-section">
+      <span class="charge-label">Charges</span><span class="charge-count">(${remaining}/50)</span>
+      <div class="charge-row">${makeRow(0, 25)}</div>
+      <div class="charge-row">${makeRow(25, 25)}</div>
+    </div>
+  `;
+}
+
+// ── School glyph ──────────────────────────────────────────
+
+const SCHOOL_ABBREV = {
+  'Abjuration':    'ABJ',
+  'Conjuration':   'CON',
+  'Divination':    'DIV',
+  'Enchantment':   'ENC',
+  'Evocation':     'EVO',
+  'Illusion':      'ILL',
+  'Necromancy':    'NEC',
+  'Transmutation': 'TRN',
+  'Universal':     'UNV',
+};
+
+function getSchoolGlyph(school) {
+  const abbr = SCHOOL_ABBREV[school];
+  if (!abbr) return '';
+  return `<span class="school-glyph">${abbr}</span>`;
 }
 
 // ── Unidentified card ─────────────────────────────────────
 
 function renderUnidentifiedCard(item) {
   const displayName = item.unidentifiedName || `Unidentified ${item.type}`;
-  const auraLine    = item.aura   ? `<div class="card-stat-line"><b>Aura</b> ${escapeHtml(item.aura)}</div>` : '';
+  const auraLine    = item.aura
+    ? `<div class="card-stat-line"><b>Aura</b> ${escapeHtml(item.aura)}</div>` : '';
   const slotLine    = item.slot && item.slot !== 'None'
     ? `<div class="card-stat-line"><b>Slot</b> ${escapeHtml(item.slot)}</div>` : '';
-  const weightLine  = item.weight ? `<div class="card-stat-line"><b>Weight</b> ${escapeHtml(item.weight)}</div>` : '';
+  const weightLine  = item.weight
+    ? `<div class="card-stat-line"><b>Weight</b> ${escapeHtml(item.weight)}</div>` : '';
 
   const descLine = item.unidentifiedDescription
-    ? `<hr class="card-rule"><div class="card-stat-line card-description">${escapeHtml(item.unidentifiedDescription)}</div>`
+    ? `<div class="card-stat-line card-description">${escapeHtml(item.unidentifiedDescription)}</div>`
     : '';
+
+  const gmNotes = `
+    <div class="gm-notes-area">
+      <div class="gm-notes-label">GM Notes</div>
+      <div class="gm-notes-lines">
+        <div class="gm-notes-line"></div>
+        <div class="gm-notes-line"></div>
+        <div class="gm-notes-line"></div>
+      </div>
+    </div>
+  `;
 
   return `
     <div class="item-card item-card--unidentified">
@@ -219,6 +287,7 @@ function renderUnidentifiedCard(item) {
         ${weightLine}
         ${descLine}
       </div>
+      ${gmNotes}
       <div class="card-passphrase">${escapeHtml(item.passphrase)}</div>
     </div>
   `;
