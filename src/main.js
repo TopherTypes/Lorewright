@@ -1,0 +1,24 @@
+// Application entry point.
+// Bootstraps the UI shell, registers all routes, and starts the router.
+
+import { renderShell } from './ui/shell.js';
+import { addRoute, startRouter } from './ui/router.js';
+import { showCreatureList } from './ui/creature-list.js';
+import { showCreatureForm } from './ui/creature-form.js';
+import { showPrintPreview } from './print/creature-card.js';
+import { showSettings } from './ui/settings.js';
+
+// Render the persistent nav and view container before dispatching any routes
+renderShell();
+
+// Register routes — more-specific patterns must come before general ones.
+// '#/creature/new' must be registered before '#/creature/:id' so the
+// literal string "new" is not parsed as an ID.
+addRoute('#/',                   () => showCreatureList());
+addRoute('#/creature/new',       () => showCreatureForm(null));
+addRoute('#/creature/:id',       ({ id }) => showCreatureForm(id));
+addRoute('#/creature/:id/print', ({ id }) => showPrintPreview(id));
+addRoute('#/settings',           () => showSettings());
+
+// Start listening to hash changes and dispatch the initial route
+startRouter();

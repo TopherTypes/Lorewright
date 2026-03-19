@@ -1,0 +1,130 @@
+/* Print stylesheet for the creature stat card (poker card: 63×88mm).
+   This file is always loaded but all rules are scoped to @media print,
+   so nothing here affects the screen UI.
+   B&W safe: no colour-only meaning, no light-grey-on-white. */
+
+@media print {
+  /* Hide all UI chrome when printing */
+  body > * {
+    display: none !important;
+  }
+
+  /* Show only the card wrapper */
+  .card-print-wrapper {
+    display: block !important;
+    transform: none !important; /* Remove screen-zoom transform */
+    margin: 0 !important;
+  }
+
+  /* Page size matches the poker card dimensions */
+  @page {
+    size: 63mm 88mm;
+    margin: 2mm;
+  }
+
+  /* ── Creature card shell ───────────────────────────── */
+
+  .creature-card {
+    width: 59mm; /* 63mm - 4mm margins */
+    height: 84mm;
+    overflow: hidden;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 6.5pt;
+    line-height: 1.25;
+    color: #000;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Card header ───────────────────────────────────── */
+
+  .card-header {
+    border-bottom: 1.5pt solid #000;
+    padding-bottom: 1mm;
+    margin-bottom: 1mm;
+  }
+
+  .card-name {
+    font-size: 9pt;
+    font-weight: bold;
+    line-height: 1.1;
+  }
+
+  .card-cr-line {
+    font-size: 7pt;
+    display: flex;
+    gap: 4mm;
+  }
+
+  .card-subtitle {
+    font-size: 6.5pt;
+    font-style: italic;
+    color: #222;
+  }
+
+  /* ── Dividing rule between sections ────────────────── */
+
+  .card-rule {
+    border: none;
+    border-top: 0.5pt solid #888;
+    margin: 1mm 0;
+  }
+
+  /* ── Section labels ────────────────────────────────── */
+
+  .card-section-label {
+    font-variant: small-caps;
+    font-size: 6pt;
+    color: #444;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Stat line ─────────────────────────────────────── */
+
+  .card-stat-line {
+    margin-bottom: 0.5mm;
+  }
+
+  .card-stat-line b {
+    font-weight: bold;
+  }
+
+  /* ── Ability score row ─────────────────────────────── */
+
+  .card-ability-row {
+    display: flex;
+    gap: 2mm;
+    font-size: 6.5pt;
+  }
+
+  .card-ability-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+
+  .card-ability-cell .ab-label {
+    font-variant: small-caps;
+    font-size: 5pt;
+    color: #444;
+  }
+
+  .card-ability-cell .ab-score {
+    font-weight: bold;
+  }
+
+  .card-ability-cell .ab-mod {
+    font-size: 5.5pt;
+  }
+
+  /* ── Flex fill — pushes content toward top ──────────── */
+
+  .card-body {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+}

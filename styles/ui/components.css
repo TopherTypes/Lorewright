@@ -1,0 +1,555 @@
+/* UI components — buttons, inputs, form sections, tables, tags, empty states.
+   No @media print rules here. */
+
+/* ── Buttons ─────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-body);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.btn-primary {
+  background: var(--color-accent-gold);
+  color: #1a1a2e;
+  border-color: var(--color-accent-gold);
+}
+
+.btn-primary:hover {
+  background: #e0bc5a;
+  border-color: #e0bc5a;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text);
+  border-color: var(--color-border-light);
+}
+
+.btn-secondary:hover {
+  background: var(--color-surface-raised);
+  border-color: var(--color-accent-teal);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+  border-color: transparent;
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.btn-ghost:hover {
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--color-danger);
+  border-color: var(--color-danger-dim);
+}
+
+.btn-danger:hover {
+  background: var(--color-danger-dim);
+  color: var(--color-text);
+}
+
+.btn-sm {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-size-sm);
+}
+
+.btn-icon {
+  padding: var(--space-xs);
+  font-size: var(--font-size-md);
+  line-height: 1;
+  min-width: 28px;
+  justify-content: center;
+}
+
+/* ── Form fields ─────────────────────────────────────────── */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.field label,
+.field-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.field input,
+.field select,
+.field textarea,
+input.field-input,
+select.field-input,
+textarea.field-input {
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-md);
+  font-family: var(--font-body);
+  transition: border-color var(--transition-fast);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+input.field-input:focus,
+select.field-input:focus,
+textarea.field-input:focus {
+  outline: none;
+  border-color: var(--color-accent-teal);
+}
+
+.field input[type="number"] {
+  font-variant-numeric: tabular-nums;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Read-only calculated output fields */
+output.calculated {
+  display: inline-block;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent-teal);
+  font-variant-numeric: tabular-nums;
+  min-width: 2ch;
+}
+
+/* ── Form sections (collapsible) ─────────────────────────── */
+
+.form-section {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-md);
+  overflow: hidden;
+}
+
+.form-section summary {
+  display: flex;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-surface);
+  cursor: pointer;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent-gold);
+  letter-spacing: 0.03em;
+  user-select: none;
+  list-style: none;
+  gap: var(--space-sm);
+}
+
+.form-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.form-section summary::before {
+  content: '▶';
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  transition: transform var(--transition-fast);
+  display: inline-block;
+}
+
+.form-section[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.form-section summary:hover {
+  background: var(--color-surface-raised);
+}
+
+.section-body {
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  background: var(--color-bg);
+}
+
+/* ── Derived value display row ───────────────────────────── */
+
+.derived-row {
+  display: flex;
+  gap: var(--space-lg);
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  border: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.derived-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.derived-item output {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent-teal);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Dynamic list fields ─────────────────────────────────── */
+
+.dynamic-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.dynamic-list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.dynamic-list-item input,
+.dynamic-list-item select {
+  flex: 1;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-size-md);
+  font-family: var(--font-body);
+}
+
+.dynamic-list-item input:focus,
+.dynamic-list-item select:focus {
+  outline: none;
+  border-color: var(--color-accent-teal);
+}
+
+.remove-item-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-dim);
+  cursor: pointer;
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  padding: 2px var(--space-xs);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.remove-item-btn:hover {
+  color: var(--color-danger);
+  background: var(--color-surface-raised);
+}
+
+.add-item-btn {
+  align-self: flex-start;
+  margin-top: var(--space-xs);
+}
+
+/* ── Skills table ────────────────────────────────────────── */
+
+.skills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.skill-row {
+  display: grid;
+  grid-template-columns: 1fr 60px 40px 16px;
+  gap: var(--space-xs);
+  align-items: center;
+}
+
+.skill-row .skill-total {
+  font-size: var(--font-size-sm);
+  color: var(--color-accent-teal);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.skills-header {
+  display: grid;
+  grid-template-columns: 1fr 60px 40px 16px;
+  gap: var(--space-xs);
+  padding: var(--space-xs) 0;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-xs);
+}
+
+.skills-header span {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.skill-row.zero-rank {
+  opacity: 0.4;
+}
+
+.skill-toggle-btn {
+  margin-top: var(--space-sm);
+  font-size: var(--font-size-sm);
+}
+
+/* ── Save indicator ──────────────────────────────────────── */
+
+.save-indicator {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-dim);
+  transition: color var(--transition-normal);
+}
+
+.save-indicator.unsaved {
+  color: var(--color-accent-gold);
+}
+
+.save-indicator.saved {
+  color: var(--color-success);
+}
+
+/* ── Creature list table ─────────────────────────────────── */
+
+.creature-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.creature-table th {
+  text-align: left;
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border);
+  font-weight: var(--font-weight-medium);
+}
+
+.creature-table td {
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  vertical-align: middle;
+}
+
+.creature-table tr:hover td {
+  background: var(--color-surface);
+}
+
+.creature-table .col-name a {
+  color: var(--color-accent-gold);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+}
+
+.creature-table .col-name a:hover {
+  color: var(--color-text);
+}
+
+.creature-table .col-cr {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+  width: 60px;
+}
+
+.creature-table .col-actions {
+  width: 140px;
+  white-space: nowrap;
+}
+
+/* Delete confirmation state */
+.btn-delete-confirm {
+  animation: pulse-danger 0.3s ease;
+}
+
+@keyframes pulse-danger {
+  0%   { background: transparent; }
+  50%  { background: var(--color-danger-dim); }
+  100% { background: transparent; }
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+
+.empty-state {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-lg);
+  color: var(--color-text-muted);
+}
+
+.empty-state h2 {
+  font-size: var(--font-size-xl);
+  margin: 0 0 var(--space-sm);
+  color: var(--color-text);
+}
+
+.empty-state p {
+  margin: 0 0 var(--space-lg);
+  line-height: var(--line-height-normal);
+}
+
+/* ── Loading state ───────────────────────────────────────── */
+
+.loading-state {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-lg);
+}
+
+/* ── Notifications / alerts ──────────────────────────────── */
+
+.alert {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  border: 1px solid transparent;
+}
+
+.alert-danger {
+  background: rgba(229, 83, 83, 0.15);
+  border-color: var(--color-danger-dim);
+  color: var(--color-danger);
+}
+
+.alert-success {
+  background: rgba(76, 175, 125, 0.15);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+/* ── Ability score block (6-up layout) ───────────────────── */
+
+.ability-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-xs);
+}
+
+.ability-block .ability-name {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: var(--font-weight-bold);
+}
+
+.ability-block input {
+  width: 52px;
+  text-align: center;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  padding: var(--space-xs) 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.ability-block input:focus {
+  outline: none;
+  border-color: var(--color-accent-teal);
+}
+
+.ability-block .ability-mod {
+  font-size: var(--font-size-sm);
+  color: var(--color-accent-teal);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  min-height: 1.2em;
+}
+
+/* ── Settings page sections ──────────────────────────────── */
+
+.settings-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.settings-section h2 {
+  margin: 0 0 var(--space-md);
+  font-size: var(--font-size-lg);
+  color: var(--color-accent-gold);
+}
+
+.settings-section p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-md);
+  margin: 0 0 var(--space-md);
+  line-height: var(--line-height-normal);
+}
+
+.settings-section.danger-zone {
+  border-color: var(--color-danger-dim);
+}
+
+.settings-section.danger-zone h2 {
+  color: var(--color-danger);
+}
+
+/* ── Print preview wrapper ───────────────────────────────── */
+
+.print-preview-page {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-lg);
+}
+
+.print-preview-controls {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+/* Scale the card up on screen for visibility — card is rendered at true print size */
+.card-print-wrapper {
+  transform-origin: top left;
+  transform: scale(2.5);
+  margin-bottom: 220mm; /* compensate for scale offset so content below is not clipped */
+}
