@@ -567,9 +567,19 @@ output.calculated {
   align-items: center;
 }
 
-/* Scale the card up on screen for visibility — card is rendered at true print size */
+/* Outer container gives the scaled card its true layout footprint.
+   Without an explicit size the CSS transform collapses the space,
+   causing content below the card to overlap it. */
+.card-preview-outer {
+  /* 59mm × 84mm card at 2.5× screen scale */
+  width:  calc(59mm * 2.5);
+  height: calc(84mm * 2.5);
+  flex-shrink: 0;
+}
+
+/* Scale the card up for screen visibility. The card is rendered at true print
+   size so the PDF and browser-print outputs share the same HTML source. */
 .card-print-wrapper {
   transform-origin: top left;
   transform: scale(2.5);
-  margin-bottom: 220mm; /* compensate for scale offset so content below is not clipped */
 }
