@@ -1,0 +1,16 @@
+{
+  "name": "lorewright",
+  "version": "0.1.0",
+  "description": "Browser-based GM production studio for Pathfinder 1e",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "author": "Chris Ramshaw",
+  "license": "MIT"
+}
