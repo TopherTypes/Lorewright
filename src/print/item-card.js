@@ -54,7 +54,18 @@ export async function showItemPrint(id) {
   `;
 
   root.querySelector('#btn-download-pdf')
-    .addEventListener('click', () => downloadItemCardPDF(item));
+    .addEventListener('click', async () => {
+      const btn = root.querySelector('#btn-download-pdf');
+      const originalText = btn.textContent;
+      btn.textContent = 'Generating PDF…';
+      btn.disabled = true;
+      try {
+        await downloadItemCardPDF(item);
+      } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    });
   root.querySelector('#btn-print-browser')
     .addEventListener('click', () => window.print());
 }

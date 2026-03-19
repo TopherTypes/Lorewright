@@ -55,7 +55,18 @@ export async function showPrintPreview(id) {
   `;
 
   root.querySelector('#btn-download-pdf')
-    .addEventListener('click', () => downloadCreatureCardPDF(derived));
+    .addEventListener('click', async () => {
+      const btn = root.querySelector('#btn-download-pdf');
+      const originalText = btn.textContent;
+      btn.textContent = 'Generating PDF…';
+      btn.disabled = true;
+      try {
+        await downloadCreatureCardPDF(derived);
+      } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    });
   root.querySelector('#btn-print-browser')
     .addEventListener('click', () => window.print());
 }
