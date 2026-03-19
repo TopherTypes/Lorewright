@@ -5,6 +5,10 @@
 
 import { getjsPDF } from './jspdf-loader.js';
 
+// DPI scale factor: canvas is rendered at 300 DPI equivalent, but jsPDF uses 72 DPI
+// To display the high-detail canvas at correct screen size, we multiply dimensions by 300/72
+const DPI_SCALE = 300 / 72;
+
 /**
  * Convert canvas to jsPDF document
  * @param {HTMLCanvasElement} canvas - Canvas element to convert
@@ -26,10 +30,13 @@ export async function canvasToPDF(canvas, options = {}) {
   // Get jsPDF constructor
   const jsPDF = await getjsPDF();
 
-  // Create PDF with custom page size (card dimensions)
+  // Create PDF with custom page size (card dimensions scaled for 300 DPI content)
   const pdf = new jsPDF({
     unit: 'mm',
-    format: [cardWidth + margins * 2, cardHeight + margins * 2],
+    format: [
+      (cardWidth + margins * 2) * DPI_SCALE,
+      (cardHeight + margins * 2) * DPI_SCALE
+    ],
     compress: true,
   });
 
@@ -37,13 +44,14 @@ export async function canvasToPDF(canvas, options = {}) {
   const imgData = canvas.toDataURL('image/png', 0.95);
 
   // Add image to PDF (full page)
+  // Scale dimensions by DPI_SCALE to account for 300 DPI canvas on 72 DPI PDF viewer
   pdf.addImage(
     imgData,
     'PNG',
-    margins,
-    margins,
-    cardWidth,
-    cardHeight
+    margins * DPI_SCALE,
+    margins * DPI_SCALE,
+    cardWidth * DPI_SCALE,
+    cardHeight * DPI_SCALE
   );
 
   return pdf;
@@ -128,7 +136,7 @@ export async function canvasesToPDF(canvases, options = {}) {
     // Convert canvas to image
     const imgData = canvas.toDataURL('image/png', 0.95);
 
-    // Add to PDF
+    // Add to PDF (keep original dimensions for batch layout on A4)
     pdf.addImage(imgData, 'PNG', x, y, cardWidth, cardHeight);
 
     cardIndex++;
