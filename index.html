@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Permissions-Policy" content="clipboard-write=(self 'https://tophertypes.github.io')">
   <title>Lorewright</title>
 
   <!-- Fantasy typography: Cinzel (display/titles) + Lora (humanist serif body) -->
@@ -21,6 +22,9 @@
 
   <!-- html2pdf library for PDF generation (UMD bundle) -->
   <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+
+  <!-- jsPDF library (UMD bundle) - exposes window.jsPDF for PDF export -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js"></script>
 
   <!-- Import map: resolves the bare 'jspdf' specifier when source is served
        directly without a bundler (e.g. GitHub Pages from repo root).
