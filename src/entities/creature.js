@@ -13,8 +13,11 @@ import {
   calculateWillSave,
   calculateCMB,
   calculateCMD,
+  SIZE_AC_MODIFIERS,
   SKILL_ABILITY_MAP,
   STANDARD_SKILLS,
+  xpFromCR,
+  averageHPFromHD,
 } from '../utils/pf1e-modifiers.js';
 
 /**
@@ -137,8 +140,18 @@ export function deriveCreature(creature) {
   stats.wisMod = abilityModifier(stats.wis ?? 10);
   stats.chaMod = abilityModifier(stats.cha ?? 10);
 
+  // ── Initiative total ──────────────────────────────────────
+  // total = DEX modifier + any misc bonus (e.g. Improved Initiative feat)
+  c.initiative.total = stats.dexMod + (c.initiative.miscModifier ?? 0);
+
+  // ── Suggested XP from CR ──────────────────────────────────
+  c.suggestedXP = xpFromCR(c.cr);
+
   // ── Armour Class ─────────────────────────────────────────
   const ac = def.ac;
+
+  // Size AC modifier is always derived from creature size — never stored manually
+  ac.size = SIZE_AC_MODIFIERS[c.size] ?? 0;
   ac.dex        = stats.dexMod;
   ac.total      = calculateAC(ac, stats.dexMod);
   ac.touch      = calculateTouchAC(ac, stats.dexMod);
@@ -150,6 +163,9 @@ export function deriveCreature(creature) {
   saves.fort.total = calculateFortSave(saves.fort.base ?? 0, stats.conMod, saveMisc);
   saves.ref.total  = calculateRefSave (saves.ref.base  ?? 0, stats.dexMod, saveMisc);
   saves.will.total = calculateWillSave(saves.will.base ?? 0, stats.wisMod, saveMisc);
+
+  // ── HP average from hit dice expression ───────────────────
+  def.hp.avgFromHD = averageHPFromHD(def.hp.hd ?? '');
 
   // ── CMB / CMD ─────────────────────────────────────────────
   stats.cmb = calculateCMB(stats.bab ?? 0, stats.strMod, c.size, stats.cmbMisc ?? 0);

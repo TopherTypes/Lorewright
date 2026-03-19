@@ -222,3 +222,118 @@ export const SKILL_ABILITY_MAP = {
 
 // Ordered list of all standard skills (for pre-populating the form)
 export const STANDARD_SKILLS = Object.keys(SKILL_ABILITY_MAP);
+
+// ── Challenge Rating → XP ──────────────────────────────────
+
+/**
+ * Standard PF1e XP awards by CR (Bestiary, Table 1-1).
+ * Keys are numeric CR values; fractional CRs use decimals (0.5, 0.25, etc.).
+ */
+export const CR_XP_TABLE = {
+  0.125: 50,
+  0.167: 65,
+  0.25:  100,
+  0.333: 135,
+  0.5:   200,
+  1:     400,
+  2:     600,
+  3:     800,
+  4:     1200,
+  5:     1600,
+  6:     2400,
+  7:     3200,
+  8:     4800,
+  9:     6400,
+  10:    9600,
+  11:    12800,
+  12:    19200,
+  13:    25600,
+  14:    38400,
+  15:    51200,
+  16:    76800,
+  17:    102400,
+  18:    153600,
+  19:    204800,
+  20:    307200,
+  21:    409600,
+  22:    614400,
+  23:    819200,
+  24:    1228800,
+  25:    1638400,
+  26:    2457600,
+  27:    3276800,
+  28:    4915200,
+  29:    6553600,
+  30:    9830400,
+};
+
+/**
+ * Returns the standard XP award for the given CR.
+ * Accepts numbers or fractional strings ("1/2", "1/4", "1/3", "1/6", "1/8").
+ * Returns null if CR cannot be resolved to a known value.
+ * @param {number|string} cr
+ * @returns {number|null}
+ */
+export function xpFromCR(cr) {
+  // Normalise fractional string representations to numeric
+  const FRACTION_MAP = {
+    '1/2': 0.5,
+    '1/3': 0.333,
+    '1/4': 0.25,
+    '1/6': 0.167,
+    '1/8': 0.125,
+  };
+
+  let numeric;
+  if (typeof cr === 'string') {
+    if (FRACTION_MAP[cr.trim()] !== undefined) {
+      numeric = FRACTION_MAP[cr.trim()];
+    } else {
+      numeric = parseFloat(cr);
+    }
+  } else {
+    numeric = cr;
+  }
+
+  if (isNaN(numeric) || numeric === null || numeric === undefined) return null;
+
+  // Direct table lookup — round to avoid floating-point key misses
+  const rounded = Math.round(numeric);
+  if (Number.isInteger(numeric) && CR_XP_TABLE[rounded] !== undefined) {
+    return CR_XP_TABLE[rounded];
+  }
+
+  // For fractional CRs, find the closest key
+  const keys = Object.keys(CR_XP_TABLE).map(Number);
+  const closest = keys.reduce((prev, curr) =>
+    Math.abs(curr - numeric) < Math.abs(prev - numeric) ? curr : prev
+  );
+  if (Math.abs(closest - numeric) < 0.05) {
+    return CR_XP_TABLE[closest];
+  }
+
+  return null;
+}
+
+// ── Hit Dice → Average HP ──────────────────────────────────
+
+/**
+ * Parses a PF1e hit dice expression ("NdM+K" or "NdM-K" or "NdM")
+ * and returns the average HP (floored), as used in stat blocks.
+ * Average of NdM = N × (M/2 + 0.5), then add/subtract the constant.
+ * Returns null for unrecognised expressions.
+ * @param {string} hdStr  e.g. "6d8+12", "3d6", "2d12-2"
+ * @returns {number|null}
+ */
+export function averageHPFromHD(hdStr) {
+  if (!hdStr || typeof hdStr !== 'string') return null;
+  const match = hdStr.trim().match(/^(\d+)d(\d+)\s*([+-]\s*\d+)?$/i);
+  if (!match) return null;
+
+  const numDice    = parseInt(match[1], 10);
+  const dieSize    = parseInt(match[2], 10);
+  const modifier   = match[3] ? parseInt(match[3].replace(/\s/g, ''), 10) : 0;
+
+  const average = numDice * (dieSize / 2 + 0.5) + modifier;
+  return Math.floor(average);
+}
