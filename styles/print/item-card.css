@@ -3,127 +3,325 @@
    preview renders correctly. Print-specific rules (page size, breaks,
    colour-adjust, and chrome-hiding) live inside @media print. */
 
-/* ── Item card shell ───────────────────────────────────────── */
+/* ── Design tokens ──────────────────────────────────────────── */
+
+:root {
+  --card-bg:              #fdf6e3;  /* parchment / aged cream */
+  --card-text:            #1a1208;  /* near-black, warm */
+  --card-text-muted:      #5a4a2a;  /* warm mid-tone */
+
+  --card-border-ident:    #b8963c;  /* gold / amber */
+  --card-accent-ident:    #f5e6c0;  /* soft amber header tint */
+  --card-rule-ident:      #c9a84c;  /* amber rule lines */
+
+  --card-border-unident:  #7a6fa0;  /* grey-purple */
+  --card-accent-unident:  #eae6f2;  /* soft lavender header tint */
+  --card-rule-unident:    #9b8fc0;  /* lavender rule lines */
+
+  --card-charge-used:     #7a1a1a;  /* deep red for spent charges */
+  --card-charge-border:   #b8963c;  /* amber charge box border */
+}
+
+/* ── Item card shell ────────────────────────────────────────── */
 
 .item-card {
-  width: 59mm; /* 63mm - 4mm margins */
+  position: relative;
+  width: 59mm;
   height: 84mm;
   overflow: hidden;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 6.5pt;
-  line-height: 1.25;
-  color: #000;
-  background: #fff;
+  font-family: 'Lora', Georgia, 'Times New Roman', serif;
+  font-size: 7pt;
+  line-height: 1.4;
+  color: var(--card-text);
+  background: var(--card-bg);
   display: flex;
   flex-direction: column;
+  padding: 1.5mm;
+  box-sizing: border-box;
+  border: 1.5pt solid var(--card-border-ident);
+  border-radius: 1.5mm;
 }
 
-/* ── Card header ───────────────────────────────────────────── */
+/* Decorative inset frame */
+.item-card::before {
+  content: '';
+  position: absolute;
+  inset: 2.5mm;
+  border: 0.5pt solid var(--card-border-ident);
+  border-radius: 0.5mm;
+  pointer-events: none;
+  opacity: 0.45;
+  z-index: 0;
+}
+
+.item-card--unidentified {
+  border-color: var(--card-border-unident);
+}
+
+.item-card--unidentified::before {
+  border-color: var(--card-border-unident);
+}
+
+/* ── Card header ────────────────────────────────────────────── */
 
 .item-card .card-header {
-  border-bottom: 1.5pt solid #000;
-  padding-bottom: 1mm;
-  margin-bottom: 1mm;
+  background: var(--card-accent-ident);
+  border-bottom: 1pt solid var(--card-border-ident);
+  /* bleed to card inner edges, compensating for card padding */
+  margin: -1.5mm -1.5mm 1.5mm -1.5mm;
+  padding: 1.5mm 2mm 1mm 2mm;
+  border-radius: 1mm 1mm 0 0;
+  position: relative;
+  z-index: 1;
 }
 
-.item-card .card-name {
-  font-size: 9pt;
-  font-weight: bold;
-  line-height: 1.1;
+.item-card--unidentified .card-header {
+  background: var(--card-accent-unident);
+  border-bottom-color: var(--card-border-unident);
 }
+
+/* ── Card name ──────────────────────────────────────────────── */
+
+.item-card .card-name {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 9.5pt;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--card-text);
+  letter-spacing: 0.01em;
+}
+
+.item-card--unidentified .card-name {
+  font-style: italic;
+  color: var(--card-text-muted);
+}
+
+/* ── Subtitle (type / slot label) ───────────────────────────── */
 
 .item-card .card-subtitle {
   font-size: 6.5pt;
-  font-style: italic;
-  color: #222;
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--card-text-muted);
+  margin-top: 0.3mm;
 }
 
-/* ── Unidentified badge ────────────────────────────────────── */
+/* ── Unidentified badge ─────────────────────────────────────── */
 
 .item-unident-label {
-  font-variant: small-caps;
-  letter-spacing: 0.05em;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 6pt;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--card-border-unident);
+  text-decoration: line-through;
+  text-decoration-color: var(--card-border-unident);
+  text-decoration-thickness: 1.5pt;
 }
 
-/* ── Dividing rule ─────────────────────────────────────────── */
+/* ── School glyph badge ─────────────────────────────────────── */
+
+.school-glyph {
+  display: inline-block;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 5pt;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--card-border-ident);
+  border: 0.5pt solid var(--card-border-ident);
+  border-radius: 0.5mm;
+  padding: 0 0.6mm;
+  vertical-align: middle;
+  margin-left: 1.2mm;
+  line-height: 1.7;
+}
+
+.item-card--unidentified .school-glyph {
+  color: var(--card-border-unident);
+  border-color: var(--card-border-unident);
+}
+
+/* ── Dividing rules ─────────────────────────────────────────── */
 
 .item-card .card-rule {
   border: none;
-  border-top: 0.5pt solid #888;
+  border-top: 0.5pt solid var(--card-rule-ident);
   margin: 1mm 0;
 }
 
-/* ── Stat lines ────────────────────────────────────────────── */
-
-.item-card .card-stat-line {
-  margin-bottom: 0.5mm;
+.item-card--unidentified .card-rule {
+  border-top-color: var(--card-rule-unident);
 }
 
-.item-card .card-stat-line b {
-  font-weight: bold;
+/* Heavier double-line group separator */
+.item-card .card-rule--group {
+  border-top: 1pt double var(--card-rule-ident);
+  margin: 1.2mm 0;
 }
 
-.item-card .card-description {
-  font-style: italic;
-  color: #222;
+.item-card--unidentified .card-rule--group {
+  border-top-color: var(--card-rule-unident);
 }
 
-.item-card .item-requirements {
-  font-size: 5.5pt;
-  color: #444;
-}
-
-/* ── Body ──────────────────────────────────────────────────── */
+/* ── Card body ──────────────────────────────────────────────── */
 
 .item-card .card-body {
   flex: 1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  padding: 0 0.5mm;
+  position: relative;
+  z-index: 1;
 }
 
-/* ── Passphrase ────────────────────────────────────────────── */
+/* ── Stat lines ─────────────────────────────────────────────── */
 
-.card-passphrase {
+.item-card .card-stat-line {
+  margin-bottom: 0.6mm;
+  line-height: 1.35;
+}
+
+.item-card .card-stat-line b {
+  font-weight: 600;
+  color: var(--card-text);
+}
+
+.item-card .card-description {
+  font-style: italic;
+  color: var(--card-text-muted);
+}
+
+/* Flavour text on unidentified card — centred and framed */
+.item-card--unidentified .card-description {
+  font-size: 7.5pt;
+  font-style: italic;
+  text-align: center;
+  color: var(--card-text);
+  padding: 1mm 0.5mm;
+  border-top: 0.5pt solid var(--card-rule-unident);
+  border-bottom: 0.5pt solid var(--card-rule-unident);
+  margin: 1mm 0;
+}
+
+.item-card .item-requirements {
+  font-size: 6pt;
+  color: var(--card-text-muted);
+}
+
+/* ── Wand charge section ────────────────────────────────────── */
+
+.charge-section {
+  margin-top: 0.5mm;
+  margin-bottom: 0.3mm;
+}
+
+.charge-label {
+  font-family: 'Cinzel', Georgia, serif;
   font-size: 5.5pt;
-  font-family: Georgia, 'Times New Roman', serif;
-  color: #666;
-  letter-spacing: 0.05em;
-  text-align: right;
-  padding-top: 1mm;
-  border-top: 0.5pt dotted #aaa;
-  margin-top: auto;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--card-text-muted);
+  text-transform: uppercase;
 }
 
-/* ── Unidentified card styling ─────────────────────────────── */
-
-.item-card--unidentified .card-name {
+.charge-count {
+  font-size: 6pt;
+  color: var(--card-text-muted);
+  margin-left: 1mm;
   font-style: italic;
 }
 
-/* ── Wand charge boxes ─────────────────────────────────────── */
-
-.charge-boxes {
+.charge-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4mm;
+  flex-wrap: nowrap;
+  gap: 0.35mm;
   margin-top: 0.5mm;
 }
 
 .charge-box {
-  width: 2.5mm;
-  height: 2.5mm;
-  border: 0.4pt solid #000;
+  width: 2mm;
+  height: 2mm;
+  border: 0.5pt solid var(--card-charge-border);
   display: inline-block;
   box-sizing: border-box;
-  background: #fff;
+  background: var(--card-bg);
+  border-radius: 0.3mm;
+  flex-shrink: 0;
 }
 
 .charge-box--used {
-  background: #000 !important;
+  background: var(--card-charge-used) !important;
+  border-color: var(--card-charge-used) !important;
 }
 
-/* ── Browser-print fallback ────────────────────────────────── */
+/* ── GM notes area (unidentified card) ─────────────────────── */
+
+.gm-notes-area {
+  border: 0.5pt dashed var(--card-rule-unident);
+  border-radius: 0.5mm;
+  padding: 0.5mm 1mm 0.5mm 1mm;
+  margin: 1mm 0.5mm 0 0.5mm;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.gm-notes-label {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 5pt;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--card-text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.8mm;
+}
+
+.gm-notes-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5mm;
+}
+
+.gm-notes-line {
+  border-bottom: 0.5pt dotted var(--card-rule-unident);
+}
+
+/* ── Passphrase / colophon footer ───────────────────────────── */
+
+.card-passphrase {
+  font-size: 5.5pt;
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
+  color: var(--card-text-muted);
+  letter-spacing: 0.06em;
+  text-align: center;
+  padding-top: 1mm;
+  border-top: 0.5pt solid var(--card-rule-ident);
+  margin-top: auto;
+  position: relative;
+  z-index: 1;
+}
+
+.item-card--unidentified .card-passphrase {
+  border-top-color: var(--card-rule-unident);
+}
+
+/* Ornament flanking the passphrase */
+.card-passphrase::before,
+.card-passphrase::after {
+  content: '✦';
+  font-size: 4pt;
+  margin: 0 1mm;
+  opacity: 0.55;
+  vertical-align: middle;
+  font-style: normal;
+}
+
+/* ── Browser-print fallback ─────────────────────────────────── */
 /* Primary PDF export is via jsPDF (Download PDF button).
    These rules apply only when the user chooses Print… (window.print()). */
 
