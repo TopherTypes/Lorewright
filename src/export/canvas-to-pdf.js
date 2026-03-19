@@ -3,6 +3,8 @@
  * Converts canvas elements to jsPDF with proper DPI scaling
  */
 
+import { getjsPDF } from './jspdf-loader.js';
+
 /**
  * Convert canvas to jsPDF document
  * @param {HTMLCanvasElement} canvas - Canvas element to convert
@@ -21,11 +23,8 @@ export async function canvasToPDF(canvas, options = {}) {
     margins = 2,
   } = options;
 
-  // Import jsPDF dynamically or from global
-  const jsPDF = window.jsPDF?.jsPDF || window.jsPDF;
-  if (!jsPDF) {
-    throw new Error('jsPDF not loaded');
-  }
+  // Get jsPDF constructor
+  const jsPDF = await getjsPDF();
 
   // Create PDF with custom page size (card dimensions)
   const pdf = new jsPDF({
@@ -81,10 +80,7 @@ export async function canvasesToPDF(canvases, options = {}) {
     margin = 5,
   } = options;
 
-  const jsPDF = window.jsPDF?.jsPDF || window.jsPDF;
-  if (!jsPDF) {
-    throw new Error('jsPDF not loaded');
-  }
+  const jsPDF = await getjsPDF();
 
   // Parse layout
   const [cols, rows] = layout === '3x3' ? [3, 3] : layout === '1x1' ? [1, 1] : [2, 2];

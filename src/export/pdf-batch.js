@@ -8,6 +8,7 @@ import { renderItemCard, renderUnidentifiedCard } from '../rendering/item-render
 import { deriveCreature } from '../entities/creature.js';
 import { getTheme } from '../rendering/card-styles.js';
 import { ensureCanvasFonts } from '../rendering/canvas-font-manager.js';
+import { getjsPDF } from './jspdf-loader.js';
 
 /**
  * Batch export entities to PDF
@@ -78,10 +79,7 @@ export async function aggregateCanvasToPDF(canvases, options = {}) {
     pageMargin = 5,
   } = options;
 
-  const jsPDF = window.jsPDF?.jsPDF || window.jsPDF;
-  if (!jsPDF) {
-    throw new Error('jsPDF not loaded');
-  }
+  const jsPDF = await getjsPDF();
 
   // Parse layout
   const layoutMap = {
