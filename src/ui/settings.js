@@ -167,8 +167,9 @@ function attachSettingsListeners(root) {
 
     // Second click — confirmed
     const { clearAllCreatures } = await import('../storage/creatures.js');
+    const { clearAllItems }     = await import('../storage/items.js');
     try {
-      await clearAllCreatures();
+      await Promise.all([clearAllCreatures(), clearAllItems()]);
       alert('All data cleared.');
       window.location.hash = '#/';
     } catch (err) {
