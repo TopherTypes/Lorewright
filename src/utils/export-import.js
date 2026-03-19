@@ -3,6 +3,7 @@
 // Import validates the file structure before overwriting stored data.
 
 import { getAllCreatures, clearAllCreatures, importCreatures } from '../storage/creatures.js';
+import { getAllItems, clearAllItems, importItems } from '../storage/items.js';
 import { validateExportFile } from './validators.js';
 import { formatDateForFilename } from './formatters.js';
 
@@ -16,16 +17,16 @@ export const APP_VERSION = '0.1.0';
  * @returns {Promise<void>}
  */
 export async function exportAllData() {
-  const creatures = await getAllCreatures();
+  const [creatures, items] = await Promise.all([getAllCreatures(), getAllItems()]);
 
   const exportObj = {
     // Note: DATA_MODEL.md has a typo "lorew right_version" (space). Correct key is below.
     lorewright_version: APP_VERSION,
     exportedAt: new Date().toISOString(),
     creatures,
+    items,
     // Phase 2+ entities (empty arrays for forward-compatibility)
     npcs: [],
-    items: [],
     locations: [],
     factions: [],
     sessionLogs: [],
@@ -83,21 +84,21 @@ export async function importData(file) {
     : '';
 
   const creatureCount = (data.creatures ?? []).length;
+  const itemCount     = (data.items ?? []).length;
   const confirmed = window.confirm(
-    `This will replace all existing data with ${creatureCount} creature(s) from the import file.${versionWarning}\n\nContinue?`
+    `This will replace all existing data with ${creatureCount} creature(s) and ${itemCount} item(s) from the import file.${versionWarning}\n\nContinue?`
   );
 
   if (!confirmed) {
     return { success: false, message: 'Import cancelled.' };
   }
 
-  await clearAllCreatures();
-  if (creatureCount > 0) {
-    await importCreatures(data.creatures);
-  }
+  await Promise.all([clearAllCreatures(), clearAllItems()]);
+  if (creatureCount > 0) await importCreatures(data.creatures);
+  if (itemCount > 0)     await importItems(data.items);
 
   return {
     success: true,
-    message: `Imported ${creatureCount} creature(s) successfully.`,
+    message: `Imported ${creatureCount} creature(s) and ${itemCount} item(s) successfully.`,
   };
 }
