@@ -12,6 +12,18 @@
        @media print rules isolate them from screen rendering -->
   <link rel="stylesheet" href="./styles/print/creature-card.css" />
   <link rel="stylesheet" href="./styles/print/item-card.css" />
+
+  <!-- Import map: resolves the bare 'jspdf' specifier when source is served
+       directly without a bundler (e.g. GitHub Pages from repo root).
+       Vite's production build bundles jspdf from node_modules instead and
+       never consults this map, so it is safe to include in both environments. -->
+  <script type="importmap">
+  {
+    "imports": {
+      "jspdf": "https://cdn.jsdelivr.net/npm/jspdf@4.2.1/+esm"
+    }
+  }
+  </script>
 </head>
 <body>
   <div id="app"></div>
