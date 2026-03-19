@@ -50,6 +50,39 @@ export function validateCreature(obj) {
 }
 
 /**
+ * Validates a magic item object against the required schema fields.
+ * @param {any} obj
+ * @returns {{ valid: boolean, errors: string[] }}
+ */
+export function validateItem(obj) {
+  const errors = [];
+
+  if (!obj || typeof obj !== 'object') {
+    return { valid: false, errors: ['Item is not an object'] };
+  }
+
+  if (!obj.meta || typeof obj.meta !== 'object') {
+    errors.push('Missing meta block');
+  } else {
+    if (!obj.meta.id || typeof obj.meta.id !== 'string') {
+      errors.push('meta.id must be a non-empty string');
+    }
+    if (!obj.meta.createdAt) errors.push('meta.createdAt is required');
+    if (!obj.meta.updatedAt) errors.push('meta.updatedAt is required');
+  }
+
+  if (!obj.name || typeof obj.name !== 'string') {
+    errors.push('name must be a non-empty string');
+  }
+
+  if (!obj.type || typeof obj.type !== 'string') {
+    errors.push('type must be a non-empty string');
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+/**
  * Validates a complete export file object.
  * @param {any} obj
  * @returns {{ valid: boolean, errors: string[] }}
@@ -75,12 +108,25 @@ export function validateExportFile(obj) {
     errors.push('creatures must be an array');
   }
 
+  if (obj.items !== undefined && !Array.isArray(obj.items)) {
+    errors.push('items must be an array');
+  }
+
   // Validate individual creatures
   const creatures = obj.creatures ?? [];
   creatures.forEach((creature, index) => {
     const result = validateCreature(creature);
     if (!result.valid) {
       errors.push(...result.errors.map(e => `Creature[${index}]: ${e}`));
+    }
+  });
+
+  // Validate individual items
+  const items = obj.items ?? [];
+  items.forEach((item, index) => {
+    const result = validateItem(item);
+    if (!result.valid) {
+      errors.push(...result.errors.map(e => `Item[${index}]: ${e}`));
     }
   });
 

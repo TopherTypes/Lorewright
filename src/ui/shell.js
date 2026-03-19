@@ -14,6 +14,7 @@ export function renderShell() {
       <a class="nav-brand" href="#/">Lorewright</a>
       <ul class="nav-links">
         <li><a href="#/" data-nav="bestiary">Bestiary</a></li>
+        <li><a href="#/items" data-nav="items">Items</a></li>
         <li><a href="#/settings" data-nav="settings">Settings</a></li>
       </ul>
     </nav>
