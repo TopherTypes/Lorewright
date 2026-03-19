@@ -204,27 +204,28 @@ function buildStatsLines(item) {
 }
 
 /**
- * Builds the wand charge tracker: a labelled header + two rows of 25 boxes.
- * Boxes are 2mm × 2mm; 25 per row × 2mm + 24 × 0.35mm gap ≈ 58.4mm (fits 59mm).
+ * Builds the wand charge tracker: a labelled header + two rows of boxes.
+ * Shows only remaining charges as empty boxes (used charges are not rendered).
+ * Boxes are 1.8mm × 1.8mm; fits in two rows of 25 boxes each (max 50 charges).
  * @param {number|null} charges  Remaining charges (0–50)
  * @returns {string} HTML string for the charge section
  */
 function buildWandChargeTracker(charges) {
   const total     = 50;
   const remaining = Math.min(Math.max(charges ?? 0, 0), total);
-  const used      = total - remaining;
 
-  const makeRow = (startIdx, count) =>
-    Array.from({ length: count }, (_, i) => {
-      const boxIdx = startIdx + i;
-      return `<span class="charge-box${boxIdx < used ? ' charge-box--used' : ''}"></span>`;
-    }).join('');
+  // Distribute remaining charges across 2 rows of 25 boxes each
+  const row1Count = Math.min(remaining, 25);
+  const row2Count = Math.max(0, remaining - 25);
+
+  const makeRow = (count) =>
+    Array.from({ length: count }, () => '<span class="charge-box"></span>').join('');
 
   return `
     <div class="charge-section">
       <span class="charge-label">Charges</span><span class="charge-count">(${remaining}/50)</span>
-      <div class="charge-row">${makeRow(0, 25)}</div>
-      <div class="charge-row">${makeRow(25, 25)}</div>
+      <div class="charge-row">${makeRow(row1Count)}</div>
+      ${row2Count > 0 ? `<div class="charge-row">${makeRow(row2Count)}</div>` : ''}
     </div>
   `;
 }
@@ -286,8 +287,8 @@ function renderUnidentifiedCard(item) {
         ${slotLine}
         ${weightLine}
         ${descLine}
+        ${gmNotes}
       </div>
-      ${gmNotes}
       <div class="card-passphrase">${escapeHtml(item.passphrase)}</div>
     </div>
   `;
