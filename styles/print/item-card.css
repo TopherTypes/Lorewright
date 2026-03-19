@@ -92,7 +92,6 @@
 }
 
 .item-card--unidentified .card-name {
-  font-style: italic;
   color: var(--card-text-muted);
 }
 
@@ -111,15 +110,12 @@
 /* ── Unidentified badge ─────────────────────────────────────── */
 
 .item-unident-label {
-  font-family: 'Cinzel', Georgia, serif;
-  font-size: 6pt;
-  font-weight: 700;
-  letter-spacing: 0.2em;
+  font-size: 6.5pt;
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--card-border-unident);
-  text-decoration: line-through;
-  text-decoration-color: var(--card-border-unident);
-  text-decoration-thickness: 1.5pt;
+  color: var(--card-text-muted);
 }
 
 /* ── School glyph badge ─────────────────────────────────────── */
@@ -195,7 +191,7 @@
   color: var(--card-text-muted);
 }
 
-/* Flavour text on unidentified card — centred and framed */
+/* Flavour text on unidentified card — centred and framed with watermark */
 .item-card--unidentified .card-description {
   font-size: 7.5pt;
   font-style: italic;
@@ -205,6 +201,29 @@
   border-top: 0.5pt solid var(--card-rule-unident);
   border-bottom: 0.5pt solid var(--card-rule-unident);
   margin: 1mm 0;
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Watermark question mark behind description text */
+.item-card--unidentified .card-description::before {
+  content: '?';
+  position: absolute;
+  font-size: 60pt;
+  font-family: 'Cinzel', Georgia, serif;
+  font-style: normal;
+  font-weight: 300;
+  color: var(--card-text);
+  opacity: 0.08;
+  z-index: 0;
+  pointer-events: none;
+  line-height: 0.8;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .item-card .item-requirements {
@@ -217,6 +236,8 @@
 .charge-section {
   margin-top: 0.5mm;
   margin-bottom: 0.3mm;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .charge-label {
@@ -238,13 +259,15 @@
 .charge-row {
   display: flex;
   flex-wrap: nowrap;
-  gap: 0.35mm;
+  gap: 0.25mm;
   margin-top: 0.5mm;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .charge-box {
-  width: 2mm;
-  height: 2mm;
+  width: 1.8mm;
+  height: 1.8mm;
   border: 0.5pt solid var(--card-charge-border);
   display: inline-block;
   box-sizing: border-box;
@@ -261,10 +284,10 @@
 /* ── GM notes area (unidentified card) ─────────────────────── */
 
 .gm-notes-area {
-  border: 0.5pt dashed var(--card-rule-unident);
+  border: 0.5pt solid var(--card-rule-unident);
   border-radius: 0.5mm;
   padding: 0.5mm 1mm 0.5mm 1mm;
-  margin: 1mm 0.5mm 0 0.5mm;
+  margin: 1mm 0;
   flex-shrink: 0;
   position: relative;
   z-index: 1;
@@ -272,11 +295,11 @@
 
 .gm-notes-label {
   font-family: 'Cinzel', Georgia, serif;
-  font-size: 5pt;
+  font-size: 5.5pt;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--card-text-muted);
+  letter-spacing: 0.15em;
   text-transform: uppercase;
+  color: var(--card-text-muted);
   margin-bottom: 0.8mm;
 }
 
