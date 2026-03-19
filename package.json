@@ -14,6 +14,7 @@
   "author": "Chris Ramshaw",
   "license": "MIT",
   "dependencies": {
+    "html2pdf.js": "^0.10.1",
     "jspdf": "^4.2.1"
   }
 }
