@@ -48,12 +48,29 @@ export function renderIdentifiedCard(item, theme, showPassphrase = false) {
   const border = theme.borders.outer;
   CanvasRenderer.drawBorder(ctx, 0, 0, canvas.width, canvas.height, border.thickness, border.color);
 
+  // Draw decorative inset border (optional subtle frame)
+  const insetMargin = Math.round(theme.spacing.padding * 0.6);
+  CanvasRenderer.drawBorder(
+    ctx,
+    insetMargin,
+    insetMargin,
+    canvas.width - 2 * insetMargin,
+    canvas.height - 2 * insetMargin,
+    Math.max(0.5, border.thickness * 0.4),
+    theme.colors.rule,
+  );
+
   // Start content at padding
   let y = theme.spacing.padding;
   const x = theme.spacing.padding;
   const contentWidth = canvas.width - 2 * theme.spacing.padding;
 
   // ─── HEADER ───────────────────────────────────
+  // Draw header background tint (light wash of header color)
+  const headerBg = theme.colors.header || theme.colors.background;
+  const headerHeight = theme.fonts.sizes.title + theme.fonts.sizes.sectionLabel + 12;
+  CanvasRenderer.fillRect(ctx, x - 2, y - 2, contentWidth + 4, headerHeight + 4, headerBg);
+
   const titleSize = theme.fonts.sizes.title;
 
   CanvasRenderer.drawText(
@@ -66,7 +83,7 @@ export function renderIdentifiedCard(item, theme, showPassphrase = false) {
     '700'
   );
 
-  y += titleSize + 4;
+  y += titleSize + 2;
 
   // Type and slot subtitle
   const typeLabel = buildTypeLabel(item);
@@ -80,7 +97,7 @@ export function renderIdentifiedCard(item, theme, showPassphrase = false) {
       theme.colors.sectionLabel,
       '400'
     );
-    y += theme.fonts.sizes.sectionLabel + 4;
+    y += theme.fonts.sizes.sectionLabel + 2;
   }
 
   y += theme.spacing.margin;
@@ -219,13 +236,30 @@ export function renderUnidentifiedCard(item, theme) {
   const border = theme.borders.outer;
   CanvasRenderer.drawBorder(ctx, 0, 0, canvas.width, canvas.height, border.thickness, border.color);
 
+  // Draw decorative inset border
+  const insetMargin = Math.round(theme.spacing.padding * 0.6);
+  CanvasRenderer.drawBorder(
+    ctx,
+    insetMargin,
+    insetMargin,
+    canvas.width - 2 * insetMargin,
+    canvas.height - 2 * insetMargin,
+    Math.max(0.5, border.thickness * 0.4),
+    theme.colors.rule,
+  );
+
   // Start content at padding
   let y = theme.spacing.padding;
   const x = theme.spacing.padding;
   const contentWidth = canvas.width - 2 * theme.spacing.padding;
 
   // ─── HEADER ───────────────────────────────────
+  // Draw header background tint
+  const headerBg = theme.colors.header || theme.colors.background;
   const titleSize = theme.fonts.sizes.title;
+  const headerHeight = titleSize + theme.fonts.sizes.sectionLabel + 8;
+  CanvasRenderer.fillRect(ctx, x - 2, y - 2, contentWidth + 4, headerHeight + 4, headerBg);
+
   const displayName = item.unidentifiedName || `Unidentified ${item.type}`;
 
   CanvasRenderer.drawText(
@@ -238,7 +272,7 @@ export function renderUnidentifiedCard(item, theme) {
     '700'
   );
 
-  y += titleSize + 4;
+  y += titleSize + 2;
 
   // "Unidentified" label
   CanvasRenderer.drawText(
@@ -251,7 +285,7 @@ export function renderUnidentifiedCard(item, theme) {
     '400'
   );
 
-  y += theme.fonts.sizes.sectionLabel + 4;
+  y += theme.fonts.sizes.sectionLabel + 2;
   y += theme.spacing.margin;
 
   // ─── BASIC INFO ────────────────────────────────

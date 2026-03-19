@@ -37,10 +37,10 @@ export const THEME_CLASSIC = {
     },
   },
   spacing: {
-    padding: 16, // Card padding in pixels
-    margin: 8, // Between sections
-    lineHeight: 1.3, // Multiplier for line height
-    sectionSpacing: 4, // Between rows in sections
+    padding: 14, // Card padding in pixels
+    margin: 6, // Between sections
+    lineHeight: 1.35, // Multiplier for line height
+    sectionSpacing: 3, // Between rows in sections
   },
   card: {
     width: 744, // 63mm at 300 DPI
@@ -202,10 +202,10 @@ export const THEME_FANTASY_GOLD = {
     },
   },
   spacing: {
-    padding: 16,
-    margin: 8,
+    padding: 14,
+    margin: 6,
     lineHeight: 1.35,
-    sectionSpacing: 4,
+    sectionSpacing: 3,
   },
   card: {
     width: 744,

@@ -4,7 +4,7 @@
  */
 
 import { renderCreatureCard } from '../rendering/creature-renderer.js';
-import { renderItemCard, renderUnidentifiedCard } from '../rendering/item-renderer.js';
+import { renderItemCard, renderIdentifiedCard, renderUnidentifiedCard } from '../rendering/item-renderer.js';
 import { deriveCreature } from '../entities/creature.js';
 import { getTheme } from '../rendering/card-styles.js';
 import { ensureCanvasFonts } from '../rendering/canvas-font-manager.js';
@@ -37,19 +37,27 @@ export async function batchExportAsPDF(entities, options = {}) {
   const canvases = [];
 
   for (const entity of entities) {
-    let canvas;
-
     if (entityType === 'creature') {
       const derived = deriveCreature(entity);
-      canvas = renderCreatureCard(derived, theme);
+      const canvas = renderCreatureCard(derived, theme);
+      canvases.push(canvas);
     } else if (entityType === 'item') {
-      // For unidentified items, render identified variant (for batch export)
-      canvas = renderItemCard(entity, theme);
+      // For unidentified items, render both identified (DM) and unidentified (player) cards
+      if (entity.identified === false) {
+        // Push identified card first (DM copy with passphrase)
+        const identifiedCanvas = renderIdentifiedCard(entity, theme, true);
+        canvases.push(identifiedCanvas);
+        // Push unidentified card second (player copy)
+        const unidentifiedCanvas = renderUnidentifiedCard(entity, theme);
+        canvases.push(unidentifiedCanvas);
+      } else {
+        // For identified items, render single card
+        const canvas = renderItemCard(entity, theme);
+        canvases.push(canvas);
+      }
     } else {
       throw new Error(`Unknown entity type: ${entityType}`);
     }
-
-    canvases.push(canvas);
   }
 
   // Aggregate canvases to PDF
