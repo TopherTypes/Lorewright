@@ -92,7 +92,12 @@ export function renderIdentitySection(c) {
     </div>
     <div class="form-grid-3">
       ${field('CR', textInput('cr', c.cr))}
-      ${field('XP', numInput('xp', c.xp))}
+      ${field('XP', `
+        ${numInput('xp', c.xp)}
+        <span class="field-suggestion">Suggested: <output class="calculated" id="out-xp-suggested">—</output>
+          <button type="button" class="btn btn-ghost btn-xs" id="btn-apply-xp">Apply</button>
+        </span>
+      `)}
       ${field('Source', textInput('source', c.source))}
     </div>
     <div class="form-grid-2">
@@ -110,9 +115,11 @@ export function renderIdentitySection(c) {
 
 export function renderInitiativeSection(c) {
   return section('Initiative', `
-    <div class="form-grid-2">
-      ${field('Initiative Modifier (total)', numInput('initiative.modifier', c.initiative.modifier))}
-      ${field('Misc Modifier', numInput('initiative.miscModifier', c.initiative.miscModifier))}
+    <div class="derived-row">
+      <span class="derived-item">Initiative <output class="calculated" id="out-initiative">—</output></span>
+    </div>
+    <div class="form-grid-1">
+      ${field('Misc Modifier', numInput('initiative.miscModifier', c.initiative.miscModifier ?? 0))}
     </div>
   `);
 }
@@ -130,17 +137,21 @@ export function renderDefenceSection(c) {
       <span class="derived-item">touch <output class="calculated" id="out-ac-touch">—</output></span>
       <span class="derived-item">flat-footed <output class="calculated" id="out-ac-flat">—</output></span>
     </div>
-    <div class="form-grid-3">
+    <div class="form-grid-2">
       ${field('Armour',     numInput('defence.ac.armour',     ac.armour))}
       ${field('Shield',     numInput('defence.ac.shield',     ac.shield))}
-      ${field('Size (AC)',  numInput('defence.ac.size',       ac.size))}
       ${field('Natural',    numInput('defence.ac.natural',    ac.natural))}
       ${field('Deflection', numInput('defence.ac.deflection', ac.deflection))}
       ${field('Misc (AC)',  numInput('defence.ac.misc',       ac.misc))}
     </div>
 
     <div class="form-grid-3">
-      ${field('HP',           numInput('defence.hp.total', hp.total))}
+      ${field('HP', `
+        ${numInput('defence.hp.total', hp.total)}
+        <span class="field-suggestion">Avg from HD: <output class="calculated" id="out-hp-avg">—</output>
+          <button type="button" class="btn btn-ghost btn-xs" id="btn-apply-hp">Apply</button>
+        </span>
+      `)}
       ${field('Hit Dice',     textInput('defence.hp.hd',  hp.hd,  'placeholder="e.g. 6d8+12"'))}
       ${field('DR',           textInput('defence.hp.dr',  hp.dr,  'placeholder="e.g. 5/magic"'))}
     </div>

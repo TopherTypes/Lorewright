@@ -6,7 +6,7 @@
 import { getCreatureById, saveCreature } from '../storage/creatures.js';
 import { createEmptyCreature, deriveCreature } from '../entities/creature.js';
 import { getViewRoot } from './shell.js';
-import { formatModifier, formatCR } from '../utils/formatters.js';
+import { formatModifier, formatCR, formatXP } from '../utils/formatters.js';
 import { STANDARD_SKILLS } from '../utils/pf1e-modifiers.js';
 import {
   renderIdentitySection,
@@ -141,6 +141,28 @@ function attachFormListeners(root, creature) {
     updateSkillVisibility(root, !showAll);
   });
 
+  // Apply suggested XP from CR
+  root.querySelector('#btn-apply-xp')?.addEventListener('click', () => {
+    const derived = deriveCreature(activeCreature);
+    if (derived.suggestedXP == null) return;
+    const xpInput = form.querySelector('[data-field="xp"]');
+    if (xpInput) {
+      xpInput.value = derived.suggestedXP;
+      xpInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  });
+
+  // Apply HP average from hit dice
+  root.querySelector('#btn-apply-hp')?.addEventListener('click', () => {
+    const derived = deriveCreature(activeCreature);
+    if (derived.defence.hp.avgFromHD == null) return;
+    const hpInput = form.querySelector('[data-field="defence.hp.total"]');
+    if (hpInput) {
+      hpInput.value = derived.defence.hp.avgFromHD;
+      hpInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  });
+
   // Save button
   root.querySelector('#btn-save')?.addEventListener('click', () => {
     saveNow(root);
@@ -263,6 +285,17 @@ function updateAllOutputs(root, derived) {
 
   setOutput(root, 'out-cmb', formatModifier(derived.statistics.cmb));
   setOutput(root, 'out-cmd', derived.statistics.cmd);
+
+  // Initiative total (DEX mod + misc)
+  setOutput(root, 'out-initiative', formatModifier(derived.initiative.total ?? 0));
+
+  // XP suggestion from CR
+  const suggestedXP = derived.suggestedXP;
+  setOutput(root, 'out-xp-suggested', suggestedXP != null ? formatXP(suggestedXP) : '—');
+
+  // HP average from hit dice expression
+  const avgHP = derived.defence.hp.avgFromHD;
+  setOutput(root, 'out-hp-avg', avgHP != null ? String(avgHP) : '—');
 
   // Ability modifier displays
   const abilities = ['str', 'dex', 'con', 'int', 'wis', 'cha'];

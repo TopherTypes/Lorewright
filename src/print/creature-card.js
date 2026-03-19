@@ -72,6 +72,9 @@ export function renderCreatureCard(derived) {
   const subtitle    = [derived.alignment, derived.size, derived.type]
     .filter(Boolean).join(' ');
 
+  // ── Initiative ────────────────────────────────────────────
+  const initiativeLine = `Init ${formatModifier(derived.initiative.total ?? 0)}`;
+
   // ── AC line ───────────────────────────────────────────────
   const acLine = `AC ${ac.total}, touch ${ac.touch}, flat-footed ${ac.flatFooted}`;
 
@@ -137,7 +140,7 @@ export function renderCreatureCard(derived) {
       </div>
 
       <div class="card-body">
-        ${sensesLine ? `<div class="card-stat-line"><b>Senses</b> ${escapeHtml(sensesLine)}</div>` : ''}
+        <div class="card-stat-line">${escapeHtml(initiativeLine)}${sensesLine ? `; <b>Senses</b> ${escapeHtml(sensesLine)}` : ''}</div>
 
         <hr class="card-rule">
         <div class="card-section-label">Defense</div>
