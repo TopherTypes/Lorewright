@@ -141,6 +141,26 @@ output.calculated {
   min-width: 2ch;
 }
 
+/* Computed/auto-calculated display value */
+.computed-field-display {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent-teal);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-md);
+}
+
+/* Small hint text below/inside labels */
+.field-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  font-weight: var(--font-weight-normal);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 /* ── Form sections (collapsible) ─────────────────────────── */
 
 .form-section {

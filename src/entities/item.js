@@ -19,6 +19,31 @@ export const ITEM_TYPES = [
   'Other',
 ];
 
+export const MAGIC_SCHOOLS = [
+  'Abjuration',
+  'Conjuration',
+  'Divination',
+  'Enchantment',
+  'Evocation',
+  'Illusion',
+  'Necromancy',
+  'Transmutation',
+  'Universal',
+];
+
+/**
+ * Returns the Pathfinder 1e aura strength label for a given caster level.
+ * @param {number} cl
+ * @returns {string}
+ */
+export function computeAuraStrength(cl) {
+  if (!cl || cl <= 0) return '';
+  if (cl <= 5)  return 'Faint';
+  if (cl <= 11) return 'Moderate';
+  if (cl <= 17) return 'Strong';
+  return 'Overwhelming';
+}
+
 export const ITEM_SLOTS = [
   'None',
   'Belt',
@@ -91,7 +116,8 @@ export function createEmptyItem() {
     name:         '',
     type:         'Potion',
     slot:         'None',
-    aura:         '',
+    aura:         '',         // auto-computed from cl + magicSchool; stored for print/legacy
+    magicSchool:  '',         // Abjuration … Universal
     cl:           0,
     weight:       '',
     price:        '',
@@ -109,6 +135,20 @@ export function createEmptyItem() {
     weaponType:       '',       // Weapon
     armourType:       '',       // Armour
     specialAbilities: '',       // Weapon, Armour
+
+    // Weapon-specific
+    weaponCategory:  'One-Handed', // Light / One-Handed / Two-Handed / Ranged
+    damageDice:      '',           // e.g. "1d8"
+    damageType:      '',           // e.g. "Slashing, Piercing"
+    critRange:       '20',         // e.g. "19-20"
+    critMultiplier:  2,            // 2, 3, or 4
+
+    // Armour-specific
+    armorCategory:       'Light', // Light / Medium / Heavy / Shield
+    acBonus:             0,       // base AC bonus (before enhancement)
+    maxDexBonus:         '',      // number as string, or '' for no limit
+    arcaneSpellFailure:  0,       // percent, e.g. 15 for 15%
+    armorCheckPenalty:   0,       // usually negative, e.g. -6
 
     // Identification
     identified:              true,

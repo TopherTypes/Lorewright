@@ -113,18 +113,32 @@ function buildStatsLines(item) {
   // Type-specific stats
   switch (item.type) {
     case 'Potion':
-    case 'Scroll':
       if (item.spell) {
-        const lvl = item.spellLevel != null ? ` (${item.spellLevel}${item.type === 'Scroll' ? `, ${item.scrollType}` : ''})` : '';
+        const lvl = item.spellLevel != null ? ` (${item.spellLevel})` : '';
         lines.push(`<b>Spell</b> ${escapeHtml(item.spell)}${lvl}`);
       }
       break;
-    case 'Wand':
+    case 'Scroll': {
+      const castDC = 5 + (item.cl || 0);
+      lines.push(`<b>Cast DC</b> ${castDC}`);
+      if (item.spell) {
+        const lvl = item.spellLevel != null ? ` (${item.spellLevel}, ${item.scrollType})` : '';
+        lines.push(`<b>Spell</b> ${escapeHtml(item.spell)}${lvl}`);
+      }
+      break;
+    }
+    case 'Wand': {
       if (item.spell) {
         lines.push(`<b>Spell</b> ${escapeHtml(item.spell)} (${item.spellLevel ?? 0})`);
       }
-      lines.push(`<b>Charges</b> ${item.charges ?? 0}/50`);
+      const total   = 50;
+      const used    = total - Math.min(Math.max(item.charges ?? 0, 0), total);
+      const boxes   = Array.from({ length: total }, (_, i) =>
+        `<span class="charge-box${i < used ? ' charge-box--used' : ''}"></span>`
+      ).join('');
+      lines.push(`<b>Charges</b> (${item.charges ?? 0}/50)<br><span class="charge-boxes">${boxes}</span>`);
       break;
+    }
     case 'Staff':
       lines.push(`<b>Charges</b> ${item.charges ?? 0}/10`);
       if (item.spellList?.length) {
@@ -135,13 +149,33 @@ function buildStatsLines(item) {
       }
       break;
     case 'Weapon':
-      if (item.weaponType) lines.push(`<b>Weapon</b> ${escapeHtml(item.weaponType)}`);
-      if (item.enhBonus)   lines.push(`<b>Enhancement</b> +${item.enhBonus}`);
+      if (item.weaponType)    lines.push(`<b>Weapon</b> ${escapeHtml(item.weaponType)}`);
+      if (item.weaponCategory) lines.push(`<b>Category</b> ${escapeHtml(item.weaponCategory)}`);
+      if (item.enhBonus)      lines.push(`<b>Enhancement</b> +${item.enhBonus}`);
+      if (item.damageDice) {
+        const dtype = item.damageType ? ` ${escapeHtml(item.damageType)}` : '';
+        lines.push(`<b>Damage</b> ${escapeHtml(item.damageDice)}${dtype}`);
+      }
+      if (item.critRange || item.critMultiplier) {
+        lines.push(`<b>Crit</b> ${escapeHtml(item.critRange || '20')}/\xd7${item.critMultiplier || 2}`);
+      }
       if (item.specialAbilities) lines.push(`<b>Abilities</b> ${escapeHtml(item.specialAbilities)}`);
       break;
     case 'Armour':
-      if (item.armourType) lines.push(`<b>Armour</b> ${escapeHtml(item.armourType)}`);
-      if (item.enhBonus)   lines.push(`<b>Enhancement</b> +${item.enhBonus}`);
+      if (item.armourType)    lines.push(`<b>Armour</b> ${escapeHtml(item.armourType)}`);
+      if (item.armorCategory) lines.push(`<b>Category</b> ${escapeHtml(item.armorCategory)}`);
+      if (item.acBonus) {
+        const enh = item.enhBonus ? ` (+${item.enhBonus} enh)` : '';
+        lines.push(`<b>AC Bonus</b> +${item.acBonus}${enh}`);
+      } else if (item.enhBonus) {
+        lines.push(`<b>Enhancement</b> +${item.enhBonus}`);
+      }
+      if (item.maxDexBonus !== '' && item.maxDexBonus != null)
+        lines.push(`<b>Max Dex</b> +${escapeHtml(String(item.maxDexBonus))}`);
+      if (item.arcaneSpellFailure)
+        lines.push(`<b>Spell Failure</b> ${item.arcaneSpellFailure}%`);
+      if (item.armorCheckPenalty)
+        lines.push(`<b>Check Penalty</b> ${item.armorCheckPenalty}`);
       if (item.specialAbilities) lines.push(`<b>Abilities</b> ${escapeHtml(item.specialAbilities)}`);
       break;
   }

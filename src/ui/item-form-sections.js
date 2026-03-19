@@ -3,7 +3,7 @@
 // of the item edit form.
 // No DOM manipulation here — pure HTML string generation.
 
-import { ITEM_TYPES, ITEM_SLOTS } from '../entities/item.js';
+import { ITEM_TYPES, ITEM_SLOTS, MAGIC_SCHOOLS, computeAuraStrength } from '../entities/item.js';
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -87,10 +87,20 @@ export function renderItemIdentitySection(item) {
 // ── Section 2: Magical Properties ─────────────────────────
 
 export function renderMagicalPropertiesSection(item) {
+  const strength = computeAuraStrength(item.cl);
+  const auraText = strength && item.magicSchool
+    ? `${strength} ${item.magicSchool}`
+    : (strength || item.magicSchool || item.aura || '—');
+
   return section('Magical Properties', `
     <div class="form-grid-2">
-      ${field('Aura', textInput('aura', item.aura, 'placeholder="e.g. Moderate Transmutation"'))}
       ${field('Caster Level', numInput('cl', item.cl, 'min="0"'))}
+      ${field('Magic School', selectInput('magicSchool', ['', ...MAGIC_SCHOOLS], item.magicSchool))}
+    </div>
+    <div class="field">
+      <label>Aura <small class="field-hint">(auto-calculated)</small></label>
+      <div class="computed-field-display" id="aura-display">${escapeHtml(auraText)}</div>
+      <input type="hidden" data-field="aura" value="${escapeHtml(strength && item.magicSchool ? `${strength} ${item.magicSchool}` : item.aura)}">
     </div>
   `);
 }
@@ -116,18 +126,25 @@ export function renderTypeSpecificBody(item) {
         <div class="form-grid-3">
           ${field('Spell', textInput('spell', item.spell, 'placeholder="e.g. Magic Missile"'))}
           ${field('Spell Level', numInput('spellLevel', item.spellLevel, 'min="0" max="4"'))}
-          ${field('Charges', numInput('charges', item.charges, 'min="0" max="50"'))}
+          ${field('Charges Remaining', numInput('charges', item.charges, 'min="0" max="50"'))}
         </div>
+        <p class="field-hint">Charges will be shown as mark-off boxes on the printed card (50 total, filled boxes = used).</p>
       `);
 
-    case 'Scroll':
+    case 'Scroll': {
+      const castDC = 5 + (item.cl || 0);
       return section('Scroll Details', `
         <div class="form-grid-3">
           ${field('Spell', textInput('spell', item.spell, 'placeholder="e.g. Fireball"'))}
           ${field('Spell Level', numInput('spellLevel', item.spellLevel, 'min="0" max="9"'))}
           ${field('Type', selectInput('scrollType', ['Arcane', 'Divine'], item.scrollType))}
         </div>
+        <div class="field">
+          <label>Cast DC <small class="field-hint">(5 + Caster Level, auto-calculated)</small></label>
+          <div class="computed-field-display" id="scroll-castdc">${castDC}</div>
+        </div>
       `);
+    }
 
     case 'Staff':
       return section('Staff Details', `
@@ -139,7 +156,19 @@ export function renderTypeSpecificBody(item) {
       return section('Weapon Details', `
         <div class="form-grid-2">
           ${field('Weapon Type', textInput('weaponType', item.weaponType, 'placeholder="e.g. Longsword"'))}
+          ${field('Weapon Category', selectInput('weaponCategory', ['Light', 'One-Handed', 'Two-Handed', 'Ranged'], item.weaponCategory || 'One-Handed'))}
+        </div>
+        <div class="form-grid-2">
           ${field('Enhancement Bonus', numInput('enhBonus', item.enhBonus, 'min="0" max="10"'))}
+          ${field('Damage Dice', textInput('damageDice', item.damageDice, 'placeholder="e.g. 1d8"'))}
+        </div>
+        <div class="form-grid-2">
+          ${field('Damage Type', textInput('damageType', item.damageType, 'placeholder="e.g. Slashing, Piercing"'))}
+          ${field('Critical Range', textInput('critRange', item.critRange || '20', 'placeholder="e.g. 19-20"'))}
+        </div>
+        <div class="form-grid-2">
+          ${field('Critical Multiplier', numInput('critMultiplier', item.critMultiplier ?? 2, 'min="2" max="4"'))}
+          <div></div>
         </div>
         ${field('Special Abilities', `<textarea data-field="specialAbilities" rows="3" placeholder="e.g. Flaming, Speed">${escapeHtml(item.specialAbilities)}</textarea>`)}
       `);
@@ -148,8 +177,17 @@ export function renderTypeSpecificBody(item) {
       return section('Armour Details', `
         <div class="form-grid-2">
           ${field('Armour Type', textInput('armourType', item.armourType, 'placeholder="e.g. Full Plate"'))}
-          ${field('Enhancement Bonus', numInput('enhBonus', item.enhBonus, 'min="0" max="10"'))}
+          ${field('Armour Category', selectInput('armorCategory', ['Light', 'Medium', 'Heavy', 'Shield'], item.armorCategory || 'Light'))}
         </div>
+        <div class="form-grid-2">
+          ${field('Enhancement Bonus', numInput('enhBonus', item.enhBonus, 'min="0" max="10"'))}
+          ${field('AC Bonus (base)', numInput('acBonus', item.acBonus ?? 0, 'min="0"'))}
+        </div>
+        <div class="form-grid-2">
+          ${field('Max Dex Bonus', textInput('maxDexBonus', item.maxDexBonus, 'placeholder="e.g. 6, blank = no limit"'))}
+          ${field('Arcane Spell Failure (%)', numInput('arcaneSpellFailure', item.arcaneSpellFailure ?? 0, 'min="0" max="100"'))}
+        </div>
+        ${field('Armour Check Penalty', numInput('armorCheckPenalty', item.armorCheckPenalty ?? 0, 'min="-20" max="0"'))}
         ${field('Special Abilities', `<textarea data-field="specialAbilities" rows="3" placeholder="e.g. Fortification, Shadow">${escapeHtml(item.specialAbilities)}</textarea>`)}
       `);
 

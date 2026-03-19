@@ -11,6 +11,15 @@
     margin: 2mm;
   }
 
+  /* ── Force text to black (overrides screen CSS variables like --color-text) ── */
+
+  .item-card,
+  .item-card * {
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   /* ── Item card shell ───────────────────────────────────── */
 
   .item-card {
@@ -109,5 +118,27 @@
 
   .item-card--unidentified .card-name {
     font-style: italic;
+  }
+
+  /* ── Wand charge boxes ─────────────────────────────────── */
+
+  .charge-boxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4mm;
+    margin-top: 0.5mm;
+  }
+
+  .charge-box {
+    width: 2.5mm;
+    height: 2.5mm;
+    border: 0.4pt solid #000;
+    display: inline-block;
+    box-sizing: border-box;
+    background: #fff;
+  }
+
+  .charge-box--used {
+    background: #000 !important;
   }
 }
