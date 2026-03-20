@@ -13,30 +13,6 @@
 
   <!-- UI styles (screen only) -->
   <link rel="stylesheet" href="./styles/ui/main.css" />
-  <link rel="stylesheet" href="./styles/batch-export.css" />
-
-  <!-- Print stylesheets — always loaded;
-       @media print rules isolate them from screen rendering -->
-  <link rel="stylesheet" href="./styles/print/creature-card.css" />
-  <link rel="stylesheet" href="./styles/print/item-card.css" />
-
-  <!-- html2pdf library for PDF generation (UMD bundle) -->
-  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
-
-  <!-- jsPDF library (UMD bundle) - exposes window.jsPDF for PDF export -->
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js"></script>
-
-  <!-- Import map: resolves the bare 'jspdf' specifier when source is served
-       directly without a bundler (e.g. GitHub Pages from repo root).
-       Vite's production build bundles jspdf from node_modules instead and
-       never consults this map, so it is safe to include in both environments. -->
-  <script type="importmap">
-  {
-    "imports": {
-      "jspdf": "https://cdn.jsdelivr.net/npm/jspdf@4.2.1/+esm"
-    }
-  }
-  </script>
 </head>
 <body>
   <div id="app"></div>

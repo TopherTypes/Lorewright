@@ -52,39 +52,6 @@ function renderSettingsPage(settings) {
     </div>
 
     <div class="settings-section">
-      <h2>Card Rendering</h2>
-      <p>Configure how cards are rendered and exported.</p>
-      <div class="field">
-        <label for="card-renderer">Card Renderer</label>
-        <select id="card-renderer" class="field-input">
-          <option value="classic" ${settings.cardRenderer === 'classic' ? 'selected' : ''}>Classic Renderer (Current)</option>
-          <option value="unified" ${settings.cardRenderer === 'unified' ? 'selected' : ''}>New Unified Renderer (Experimental)</option>
-        </select>
-        <p class="field-hint">The new renderer provides flexible card sizing and better space utilization.</p>
-      </div>
-      <div class="field">
-        <label for="default-card-theme">Default Card Theme</label>
-        <select id="default-card-theme" class="field-input">
-          <option value="classic-parchment" ${settings.defaultCardTheme === 'classic-parchment' ? 'selected' : ''}>Classic Parchment</option>
-          <option value="modern-dark" ${settings.defaultCardTheme === 'modern-dark' ? 'selected' : ''}>Modern Dark</option>
-          <option value="minimalist" ${settings.defaultCardTheme === 'minimalist' ? 'selected' : ''}>Minimalist</option>
-          <option value="fantasy-gold" ${settings.defaultCardTheme === 'fantasy-gold' ? 'selected' : ''}>Fantasy Gold</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="auto-card-layout">
-          <input type="checkbox" id="auto-card-layout" ${settings.autoCardLayout !== false ? 'checked' : ''}>
-          Auto-optimize card layout in batch exports
-        </label>
-        <p class="field-hint">Automatically size and arrange cards to minimize blank space on pages.</p>
-      </div>
-      <button class="btn btn-primary" id="btn-save-rendering" style="margin-top: 12px;">
-        Save Rendering Preferences
-      </button>
-      <span class="save-indicator" id="rendering-save-indicator"></span>
-    </div>
-
-    <div class="settings-section">
       <h2>Export</h2>
       <p>Download all your campaign data as a JSON file for backup or transfer to another device.</p>
       <button class="btn btn-secondary" id="btn-export">Export All Data</button>
@@ -122,35 +89,6 @@ function attachSettingsListeners(root) {
 
     try {
       await saveSettings({ campaignName: name });
-      if (indicator) {
-        indicator.textContent = 'Saved';
-        indicator.className   = 'save-indicator saved';
-        setTimeout(() => {
-          indicator.textContent = '';
-          indicator.className   = 'save-indicator';
-        }, 2000);
-      }
-    } catch (err) {
-      if (indicator) {
-        indicator.textContent = `Failed: ${err.message}`;
-        indicator.className   = 'save-indicator unsaved';
-      }
-    }
-  });
-
-  // Rendering preferences save
-  root.querySelector('#btn-save-rendering')?.addEventListener('click', async () => {
-    const rendererSelect = root.querySelector('#card-renderer');
-    const themeSelect = root.querySelector('#default-card-theme');
-    const autoLayoutCheckbox = root.querySelector('#auto-card-layout');
-    const indicator = root.querySelector('#rendering-save-indicator');
-
-    try {
-      await saveSettings({
-        cardRenderer: rendererSelect?.value || 'classic',
-        defaultCardTheme: themeSelect?.value || 'classic-parchment',
-        autoCardLayout: autoLayoutCheckbox?.checked ?? true,
-      });
       if (indicator) {
         indicator.textContent = 'Saved';
         indicator.className   = 'save-indicator saved';
