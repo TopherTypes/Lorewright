@@ -9,6 +9,8 @@ import { showCreatureCardExport } from './ui/creature-card-export.js';
 import { showItemList } from './ui/item-list.js';
 import { showItemForm } from './ui/item-form.js';
 import { showItemCardExport } from './ui/item-card-export.js';
+import { showSpellList } from './ui/spell-list.js';
+import { showSpellForm } from './ui/spell-form.js';
 import { showSettings } from './ui/settings.js';
 
 // Render the persistent nav and view container before dispatching any routes
@@ -25,6 +27,9 @@ addRoute('#/items',         () => showItemList());
 addRoute('#/item/new',      () => showItemForm(null));
 addRoute('#/item/:id',      ({ id }) => showItemForm(id));
 addRoute('#/export-items',  () => showItemCardExport());
+addRoute('#/spells',        () => showSpellList());
+addRoute('#/spell/new',     () => showSpellForm(null));
+addRoute('#/spell/:id',     ({ id }) => showSpellForm(id));
 addRoute('#/settings',      () => showSettings());
 
 // Start listening to hash changes and dispatch the initial route

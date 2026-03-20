@@ -17,6 +17,7 @@ export function renderShell() {
         <li><a href="#/export-creatures" data-nav="export-creatures">Creature Cards</a></li>
         <li><a href="#/items" data-nav="items">Items</a></li>
         <li><a href="#/export-items" data-nav="export-items">Item Cards</a></li>
+        <li><a href="#/spells" data-nav="spells">Spells</a></li>
         <li><a href="#/settings" data-nav="settings">Settings</a></li>
       </ul>
     </nav>
