@@ -4,11 +4,14 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { createBasicCreatureCardHTML, createComplexCreatureCardHTML, createSpellcasterCardHTML } from './creature-card-templates.js';
+import { createSpellDetailCardHTML } from './spell-detail-card-generator.js';
 import { getCreatureCardStyles } from './creature-card-styles.js';
 import { getCreatureCardDimensions, getCreatureCardPosition, getCreatureCardPageAndPosition } from './creature-card-layout.js';
+import { getSpellById } from '../storage/spells.js';
 
 /**
  * Generates a PDF file with creature stat cards in multiple variants.
+ * If creatures have linked spells, includes full spell detail cards.
  * @param {array} cardConfigs Array of {creature, variant, orientation, imageUrl}
  *   - creature: creature object (should be derived with deriveCreature())
  *   - variant: 'basic' | 'complex' | 'spellcaster'
@@ -29,14 +32,18 @@ export async function generateCreatureCardsPDF(cardConfigs) {
       format: 'letter',
     });
 
+    let cardIndex = 0;
+    let currentPage = 0;
+
     // Render each card as canvas image and add to PDF
     for (let i = 0; i < cardConfigs.length; i++) {
       const config = cardConfigs[i];
-      const { pageNumber, indexOnPage, position } = getCreatureCardPageAndPosition(i, config.variant, config.orientation);
+      const { pageNumber, indexOnPage, position } = getCreatureCardPageAndPosition(cardIndex, config.variant, config.orientation);
 
       // Add new page if needed (page 0 is created by jsPDF, add from page 1)
       if (pageNumber > 0 && indexOnPage === 0) {
         pdf.addPage();
+        currentPage = pageNumber;
       }
 
       // Generate card HTML based on variant
@@ -54,6 +61,24 @@ export async function generateCreatureCardsPDF(cardConfigs) {
 
       const imgData = canvas.toDataURL('image/png');
       pdf.addImage(imgData, 'PNG', xMm, yMm, widthMm, heightMm);
+
+      cardIndex++;
+
+      // After creature card: generate spell detail cards if this is a spellcaster with linked spells
+      if (config.variant === 'spellcaster' && hasLinkedSpells(config.creature)) {
+        const spellCards = await generateSpellDetailsForCreature(config.creature);
+
+        for (const spellCardHtml of spellCards) {
+          // Add new page for spell card
+          pdf.addPage();
+
+          // Render spell card to canvas
+          const spellCanvas = await renderSpellDetailCardToCanvas(spellCardHtml);
+
+          // Add to PDF full page
+          pdf.addImage(spellCanvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
+        }
+      }
     }
 
     // Generate filename
@@ -134,6 +159,95 @@ async function renderCardToCanvas(html, variant, orientation) {
     return canvas;
   } finally {
     // Clean up
+    document.body.removeChild(container);
+  }
+}
+
+/**
+ * Checks if a creature has any linked spells.
+ * @param {object} creature The creature to check
+ * @returns {boolean} True if creature has spell IDs linked
+ */
+function hasLinkedSpells(creature) {
+  const offence = creature.offence ?? {};
+  return (
+    (offence.spellsKnownIds?.length ?? 0) > 0 ||
+    (offence.spellsPreparedIds?.length ?? 0) > 0 ||
+    (offence.spellLikeAbilityIds?.length ?? 0) > 0
+  );
+}
+
+/**
+ * Generates spell detail cards for all linked spells in a creature.
+ * @param {object} creature The creature with linked spells
+ * @returns {Promise<string[]>} Array of HTML strings for spell detail cards
+ */
+async function generateSpellDetailsForCreature(creature) {
+  const offence = creature.offence ?? {};
+  const spellCards = [];
+
+  // Helper to fetch and generate spell cards
+  const generateCardsForIds = async (spellIds) => {
+    for (const spellRef of (spellIds ?? [])) {
+      try {
+        const spell = await getSpellById(spellRef.spellId);
+        if (spell) {
+          spellCards.push(createSpellDetailCardHTML(spell));
+        }
+      } catch (err) {
+        console.warn(`Failed to fetch spell ${spellRef.spellId}:`, err);
+      }
+    }
+  };
+
+  // Generate cards for all spell types
+  await generateCardsForIds(offence.spellsKnownIds);
+  await generateCardsForIds(offence.spellsPreparedIds);
+  await generateCardsForIds(offence.spellLikeAbilityIds);
+
+  return spellCards;
+}
+
+/**
+ * Renders spell detail card HTML to canvas for PDF inclusion.
+ * @param {string} html HTML string for the spell card
+ * @returns {Promise<Canvas>} Canvas element with rendered card
+ */
+async function renderSpellDetailCardToCanvas(html) {
+  const container = document.createElement('div');
+  container.style.position = 'absolute';
+  container.style.left = '-9999px';
+  container.style.top = '-9999px';
+  container.style.width = '210mm';
+  container.style.height = '297mm';
+  container.style.padding = '15mm';
+  container.style.boxSizing = 'border-box';
+  container.style.backgroundColor = '#f5f1e6';
+
+  // Add styles
+  const style = document.createElement('style');
+  style.textContent = getCreatureCardStyles();
+  container.appendChild(style);
+
+  // Add card HTML
+  container.innerHTML += html;
+
+  // Append to DOM temporarily
+  document.body.appendChild(container);
+
+  try {
+    const canvas = await html2canvas(container, {
+      width: 1650, // 210mm at 96dpi
+      height: 2340, // 297mm at 96dpi
+      scale: 2,
+      backgroundColor: '#f5f1e6',
+      logging: false,
+      useCORS: true,
+      allowTaint: true,
+    });
+
+    return canvas;
+  } finally {
     document.body.removeChild(container);
   }
 }
