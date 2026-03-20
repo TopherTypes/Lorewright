@@ -49,6 +49,11 @@ export function createIdentifiedCardHTML(item) {
     ? `<div class="card-image"><img src="${escapeHtml(item.imageUrl)}" alt="Item image" /></div>`
     : '';
 
+  // Charge tracker for wands
+  const chargeTrackerHtml = item.type === 'wand' && item.charges > 0
+    ? createChargeTrackerHtml(item.charges)
+    : '';
+
   return `
     <div class="card identified">
       ${imageHtml}
@@ -61,6 +66,7 @@ export function createIdentifiedCardHTML(item) {
       ${propsHtml ? `<div class="card-properties">${propsHtml}</div>` : ''}
       ${effectsHtml}
       <div class="card-description">${escapeHtml(item.description || '').replace(/\n/g, '<br>')}</div>
+      ${chargeTrackerHtml}
       <div class="card-passphrase">${passphrase}</div>
     </div>
   `;
@@ -92,6 +98,22 @@ export function createUnidentifiedCardHTML(item) {
       <div class="card-passphrase">${passphrase}</div>
     </div>
   `;
+}
+
+/**
+ * Creates HTML for a wand's charge tracker grid.
+ * @param {number} charges Number of remaining charges
+ * @returns {string} HTML for the charge tracker
+ */
+function createChargeTrackerHtml(charges) {
+  const chargeCount = Math.min(Math.max(charges, 0), 50);
+  let chargeBoxes = '';
+
+  for (let i = 0; i < chargeCount; i++) {
+    chargeBoxes += '<div class="charge-box"></div>';
+  }
+
+  return `<div class="card-charge-tracker">${chargeBoxes}</div>`;
 }
 
 /**
