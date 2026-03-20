@@ -247,18 +247,49 @@ function renderSpellPickerList(spells = [], spellType = 'spellsKnown') {
     'spellLikeAbilities': 'Spell-Like Abilities',
   };
 
-  const spellRows = spells.map((spellRef, i) => `
-    <div class="spell-picker-item" data-spell-list="${spellType}" data-spell-id="${escapeHtml(spellRef.spellId)}" data-level="${spellRef.level ?? ''}">
-      <span class="spell-name">Spell ID: ${escapeHtml(spellRef.spellId.substring(0, 8))}…</span>
-      <button type="button" class="remove-item-btn" data-remove-spell="${spellType}" data-spell-id="${escapeHtml(spellRef.spellId)}" title="Remove">×</button>
-    </div>
-  `).join('');
+  // Group spells by level
+  const spellsByLevel = {};
+  spells.forEach(spellRef => {
+    const level = spellRef.level ?? 0;
+    if (!spellsByLevel[level]) {
+      spellsByLevel[level] = [];
+    }
+    spellsByLevel[level].push(spellRef);
+  });
+
+  // Render grouped spells
+  let spellContent = '';
+  const sortedLevels = Object.keys(spellsByLevel).map(Number).sort((a, b) => a - b);
+
+  sortedLevels.forEach(level => {
+    const levelSpells = spellsByLevel[level];
+    const levelLabel = level === 0 ? 'Cantrips' : `Level ${level}`;
+
+    const spellItems = levelSpells.map((spellRef, i) => {
+      const spellName = spellRef.spellName || '(Unknown Spell)';
+      return `
+        <div class="spell-picker-item" data-spell-list="${spellType}" data-spell-id="${escapeHtml(spellRef.spellId)}" data-level="${level}">
+          <span class="spell-name">${escapeHtml(spellName)} - Level ${level}</span>
+          <button type="button" class="remove-item-btn" data-remove-spell="${spellType}" data-spell-id="${escapeHtml(spellRef.spellId)}" title="Remove">×</button>
+        </div>
+      `;
+    }).join('');
+
+    spellContent += `
+      <div class="spell-level-group">
+        <div class="spell-level-header">${levelLabel}</div>
+        <div class="spell-level-items">
+          ${spellItems}
+        </div>
+      </div>
+    `;
+  });
 
   const typeLabel = typeLabels[spellType] || spellType;
   return `
     <div class="spell-picker-section" data-spell-type="${escapeHtml(spellType)}">
       <div class="spell-picker-list" data-spell-list="${escapeHtml(spellType)}">
-        ${spellRows}
+        ${spellContent || '<div class="empty-spell-list">No spells added yet</div>'}
       </div>
       <div class="spell-picker-buttons">
         <button type="button" class="btn btn-ghost btn-sm" data-add-spell-single="${escapeHtml(spellType)}">
