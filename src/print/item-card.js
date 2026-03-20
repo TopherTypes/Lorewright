@@ -9,6 +9,8 @@ import { getItemById } from '../storage/items.js';
 import { getViewRoot } from '../ui/shell.js';
 import { navigate } from '../ui/router.js';
 import { downloadItemCardPDF } from './pdf-export.js';
+import { renderItemCard as renderUnifiedItemCard } from '../rendering/unified-card-renderer.js';
+import { selectItemLayoutAndSize } from '../rendering/card-layout-system.js';
 
 /**
  * Renders the print preview route (#/item/:id/print).
@@ -32,6 +34,7 @@ export async function showItemPrint(id) {
   }
 
   const cardHtml = renderItemCard(item);
+  const layoutInfo = selectItemLayoutAndSize(item);
 
   const cardCount = item.identified !== false ? '' : 's';
 
@@ -43,15 +46,24 @@ export async function showItemPrint(id) {
           <a href="#/item/${escapeHtml(id)}" class="btn btn-secondary">← Back to Edit</a>
           <button class="btn btn-primary" id="btn-download-pdf">Download PDF</button>
           <button class="btn btn-secondary" id="btn-print-browser">Print Card${cardCount}…</button>
+          <button class="btn btn-info" id="btn-toggle-renderer" title="Toggle between old and new renderer">New Renderer</button>
         </div>
       </div>
+      <div class="card-layout-info">
+        <span class="layout-badge">${layoutInfo.layout}</span>
+        <span class="size-badge">${layoutInfo.size}</span>
+        ${layoutInfo.cardCount > 1 ? `<span class="card-count">${layoutInfo.cardCount} cards</span>` : ''}
+      </div>
       <div class="card-preview-outer">
-        <div class="card-print-wrapper">
+        <div class="card-print-wrapper" id="card-preview-content">
           ${cardHtml}
         </div>
       </div>
     </div>
   `;
+
+  // Track which renderer is active
+  let useUnifiedRenderer = false;
 
   root.querySelector('#btn-download-pdf')
     .addEventListener('click', async () => {
@@ -66,8 +78,35 @@ export async function showItemPrint(id) {
         btn.disabled = false;
       }
     });
+
   root.querySelector('#btn-print-browser')
     .addEventListener('click', () => window.print());
+
+  // Toggle between old and new renderer
+  root.querySelector('#btn-toggle-renderer')
+    .addEventListener('click', () => {
+      useUnifiedRenderer = !useUnifiedRenderer;
+      const btn = root.querySelector('#btn-toggle-renderer');
+      const previewContent = root.querySelector('#card-preview-content');
+
+      if (useUnifiedRenderer) {
+        btn.classList.add('active');
+        const unifiedHtml = renderUnifiedItemCard(item, { theme: 'classic-parchment' });
+        // Handle both single card and array of [identified, unidentified]
+        const html = Array.isArray(unifiedHtml)
+          ? `<div class="item-card-set">${unifiedHtml.join('')}</div>`
+          : unifiedHtml;
+        // Wrap in stylesheet link for unified styles
+        const styledHtml = `
+          <link rel="stylesheet" href="styles/print/cards-unified.css">
+          ${html}
+        `;
+        previewContent.innerHTML = styledHtml;
+      } else {
+        btn.classList.remove('active');
+        previewContent.innerHTML = renderItemCard(item);
+      }
+    });
 }
 
 /**
