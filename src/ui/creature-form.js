@@ -189,6 +189,34 @@ function formClickHandler(event) {
     return;
   }
 
+  // Melee attack: add
+  const addMeleeBtn = target.closest('#add-melee-attack');
+  if (addMeleeBtn) {
+    handleAddMeleeAttack(form, root);
+    return;
+  }
+
+  // Melee attack: remove
+  const removeMeleeBtn = target.closest('[data-remove-melee]');
+  if (removeMeleeBtn) {
+    handleRemoveMeleeAttack(form, parseInt(removeMeleeBtn.dataset.removeMelee, 10), root);
+    return;
+  }
+
+  // Ranged attack: add
+  const addRangedBtn = target.closest('#add-ranged-attack');
+  if (addRangedBtn) {
+    handleAddRangedAttack(form, root);
+    return;
+  }
+
+  // Ranged attack: remove
+  const removeRangedBtn = target.closest('[data-remove-ranged]');
+  if (removeRangedBtn) {
+    handleRemoveRangedAttack(form, parseInt(removeRangedBtn.dataset.removeRanged, 10), root);
+    return;
+  }
+
   // Save button
   const saveBtn = target.closest('#btn-save');
   if (saveBtn) {
@@ -289,6 +317,42 @@ function readFormData(form, base) {
     });
   });
   creature.specialAbilities = specialAbilities;
+
+  // ── Melee attacks (structured list with damage type) ────
+  const meleeListEl = form.querySelector('#melee-attacks-list');
+  if (meleeListEl) {
+    const meleeAttacks = [];
+    meleeListEl.querySelectorAll('.attack-row').forEach((row) => {
+      const nameInput = row.querySelector('[data-attack-field="name"]');
+      const damageInput = row.querySelector('[data-attack-field="damageType"]');
+      const name = nameInput?.value.trim() ?? '';
+      if (name) {  // Only add non-empty attacks
+        meleeAttacks.push({
+          name: name,
+          damageType: damageInput?.value ?? '',
+        });
+      }
+    });
+    creature.offence.melee = meleeAttacks;
+  }
+
+  // ── Ranged attacks (structured list with damage type) ───
+  const rangedListEl = form.querySelector('#ranged-attacks-list');
+  if (rangedListEl) {
+    const rangedAttacks = [];
+    rangedListEl.querySelectorAll('.attack-row').forEach((row) => {
+      const nameInput = row.querySelector('[data-attack-field="name"]');
+      const damageInput = row.querySelector('[data-attack-field="damageType"]');
+      const name = nameInput?.value.trim() ?? '';
+      if (name) {  // Only add non-empty attacks
+        rangedAttacks.push({
+          name: name,
+          damageType: damageInput?.value ?? '',
+        });
+      }
+    });
+    creature.offence.ranged = rangedAttacks;
+  }
 
   return creature;
 }
@@ -471,6 +535,58 @@ function handleRemoveSkill(form, index, root) {
   }
 
   console.log('[handleRemoveSkill] Skills after splice:', activeCreature.statistics.skills);
+  refreshForm(root);
+}
+
+function handleAddMeleeAttack(form, root) {
+  const updated = readFormData(form, activeCreature);
+  activeCreature = updated;
+  if (!Array.isArray(activeCreature.offence.melee)) {
+    activeCreature.offence.melee = [];
+  }
+  activeCreature.offence.melee.push({ name: '', damageType: '' });
+  refreshForm(root);
+}
+
+function handleRemoveMeleeAttack(form, index, root) {
+  console.log('[handleRemoveMeleeAttack] Removing melee attack at index', index);
+  const updated = readFormData(form, activeCreature);
+  activeCreature = updated;
+  console.log('[handleRemoveMeleeAttack] Melee attacks before splice:', activeCreature.offence.melee);
+
+  if (Array.isArray(activeCreature.offence.melee) && index >= 0 && index < activeCreature.offence.melee.length) {
+    activeCreature.offence.melee.splice(index, 1);
+  } else {
+    console.warn('[handleRemoveMeleeAttack] Invalid index:', index, 'for list length:', activeCreature.offence.melee?.length);
+  }
+
+  console.log('[handleRemoveMeleeAttack] Melee attacks after splice:', activeCreature.offence.melee);
+  refreshForm(root);
+}
+
+function handleAddRangedAttack(form, root) {
+  const updated = readFormData(form, activeCreature);
+  activeCreature = updated;
+  if (!Array.isArray(activeCreature.offence.ranged)) {
+    activeCreature.offence.ranged = [];
+  }
+  activeCreature.offence.ranged.push({ name: '', damageType: '' });
+  refreshForm(root);
+}
+
+function handleRemoveRangedAttack(form, index, root) {
+  console.log('[handleRemoveRangedAttack] Removing ranged attack at index', index);
+  const updated = readFormData(form, activeCreature);
+  activeCreature = updated;
+  console.log('[handleRemoveRangedAttack] Ranged attacks before splice:', activeCreature.offence.ranged);
+
+  if (Array.isArray(activeCreature.offence.ranged) && index >= 0 && index < activeCreature.offence.ranged.length) {
+    activeCreature.offence.ranged.splice(index, 1);
+  } else {
+    console.warn('[handleRemoveRangedAttack] Invalid index:', index, 'for list length:', activeCreature.offence.ranged?.length);
+  }
+
+  console.log('[handleRemoveRangedAttack] Ranged attacks after splice:', activeCreature.offence.ranged);
   refreshForm(root);
 }
 

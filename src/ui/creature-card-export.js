@@ -127,8 +127,8 @@ function renderCreatureRow(creature) {
         </select>
 
         <select class="orientation-select" data-creature-id="${id}" style="display: none;">
-          <option value="landscape">Landscape (4"×6")</option>
-          <option value="portrait">Portrait (6"×4")</option>
+          <option value="landscape">Landscape (6"×4")</option>
+          <option value="portrait">Portrait (4"×6")</option>
         </select>
 
         <div class="variant-display" data-creature-id="${id}">

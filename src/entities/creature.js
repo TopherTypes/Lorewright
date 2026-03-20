@@ -115,6 +115,7 @@ export function createEmptyCreature() {
     specialAbilities: [],
     description: '',
     source:      '',
+    imageUrl:    '',
   };
 }
 

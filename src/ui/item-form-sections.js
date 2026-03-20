@@ -4,6 +4,7 @@
 // No DOM manipulation here — pure HTML string generation.
 
 import { ITEM_TYPES, ITEM_SLOTS, MAGIC_SCHOOLS, computeAuraStrength } from '../entities/item.js';
+import { getDamageTypeOptions } from '../constants/damage-types.js';
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -34,9 +35,12 @@ function numInput(name, value = 0, extra = '') {
 }
 
 function selectInput(name, options, value = '') {
-  const opts = options.map(o =>
-    `<option value="${escapeHtml(o)}" ${o === value ? 'selected' : ''}>${escapeHtml(o)}</option>`
-  ).join('');
+  const opts = options.map(o => {
+    // Handle both string values and {label, value} objects
+    const optValue = typeof o === 'string' ? o : o.value;
+    const optLabel = typeof o === 'string' ? o : o.label;
+    return `<option value="${escapeHtml(optValue)}" ${optValue === value ? 'selected' : ''}>${escapeHtml(optLabel)}</option>`;
+  }).join('');
   return `<select data-field="${name}">${opts}</select>`;
 }
 
@@ -163,7 +167,7 @@ export function renderTypeSpecificBody(item) {
           ${field('Damage Dice', textInput('damageDice', item.damageDice, 'placeholder="e.g. 1d8"'))}
         </div>
         <div class="form-grid-2">
-          ${field('Damage Type', textInput('damageType', item.damageType, 'placeholder="e.g. Slashing, Piercing"'))}
+          ${field('Damage Type', selectInput('damageType', getDamageTypeOptions(), item.damageType))}
           ${field('Critical Range', textInput('critRange', item.critRange || '20', 'placeholder="e.g. 19-20"'))}
         </div>
         <div class="form-grid-2">
@@ -227,6 +231,10 @@ export function renderEffectsSection(item) {
 export function renderItemDescriptionSection(item) {
   return section('Description', `
     ${field('Description', `<textarea data-field="description" rows="4" placeholder="Physical description, history, lore…">${escapeHtml(item.description)}</textarea>`)}
+    <div class="form-grid-2">
+      ${field('Image URL', textInput('imageUrl', item.imageUrl, 'placeholder="https://example.com/image.jpg"'))}
+      ${field('Or Upload Image', `<input type="file" id="image-upload-item" accept="image/*">`)}
+    </div>
   `);
 }
 
