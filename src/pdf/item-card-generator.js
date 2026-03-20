@@ -89,7 +89,7 @@ function buildCardDataList(items) {
 
     // Unidentified card (if applicable)
     // Uses per-item flag: item.includeUnidentifiedVariant (defaults to true)
-    if (item.includeUnidentifiedVariant !== false && item.identified && (item.unidentifiedName || item.unidentifiedDescription)) {
+    if (item.includeUnidentifiedVariant !== false && (item.unidentifiedName || item.unidentifiedDescription)) {
       const unidentifiedHtml = createUnidentifiedCardHTML(item);
       cards.push({
         html: unidentifiedHtml,
