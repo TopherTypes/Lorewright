@@ -250,14 +250,14 @@ function readFormData(form, base) {
   });
 
   // ── Dynamic list fields (data-list-field) ───────────────
-  // Collect all unique list field names
+  // Collect all unique list field names (only from input elements, not buttons)
   const listFields = new Set();
-  form.querySelectorAll('[data-list-field]').forEach(input => {
+  form.querySelectorAll('input[data-list-field]').forEach(input => {
     listFields.add(input.dataset.listField);
   });
 
   listFields.forEach(listField => {
-    const inputs = form.querySelectorAll(`[data-list-field="${listField}"]`);
+    const inputs = form.querySelectorAll(`input[data-list-field="${listField}"]`);
     const values = Array.from(inputs).map(i => i.value);
     console.log(`[readFormData] List field "${listField}": ${inputs.length} inputs, values:`, values);
     setNestedValue(creature, listField, values);
