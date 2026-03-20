@@ -1,10 +1,13 @@
 /**
  * Batch Export Modal
  * UI for selecting theme, layout, and exporting multiple cards as PDF
+ * Also supports the new unified renderer with layout preview
  */
 
 import { getThemeList } from '../rendering/card-styles.js';
+import { getAllThemes } from '../rendering/card-theme-system.js';
 import { downloadBatchPDF } from '../export/pdf-batch.js';
+import { previewBatchLayout } from '../export/unified-pdf-export.js';
 
 /**
  * Show batch export modal
@@ -54,6 +57,15 @@ export async function showBatchExportModal(entities, entityType, onClose = null)
           </div>
         </div>
 
+        <!-- Renderer selector -->
+        <div class="batch-option-group">
+          <label for="batch-renderer">Renderer:</label>
+          <select id="batch-renderer" class="batch-select">
+            <option value="classic" selected>Classic Renderer</option>
+            <option value="unified">New Unified Renderer</option>
+          </select>
+        </div>
+
         <!-- Theme selector -->
         <div class="batch-option-group">
           <label for="batch-theme">Theme:</label>
@@ -62,17 +74,31 @@ export async function showBatchExportModal(entities, entityType, onClose = null)
           </select>
         </div>
 
-        <!-- Layout selector -->
-        <div class="batch-option-group">
+        <!-- Layout selector (classic renderer) -->
+        <div class="batch-option-group" id="batch-layout-group">
           <label for="batch-layout">Layout:</label>
           <select id="batch-layout" class="batch-select">
             ${layoutOptions}
           </select>
         </div>
 
+        <!-- Auto-layout option (new renderer) -->
+        <div class="batch-option-group" id="batch-auto-layout-group" style="display: none;">
+          <label>
+            <input type="checkbox" id="batch-auto-layout" checked>
+            Auto-optimize layout (group cards by size)
+          </label>
+        </div>
+
+        <!-- Layout preview (new renderer) -->
+        <div class="batch-layout-preview" id="batch-layout-preview" style="display: none;">
+          <p><strong>Page Layout Preview:</strong></p>
+          <div class="batch-preview-pages" id="batch-preview-pages"></div>
+        </div>
+
         <!-- Info message -->
         <div class="batch-info-message">
-          <p>Cards will be arranged on standard A4 (Letter) pages and ready to print.</p>
+          <p id="batch-info-text">Cards will be arranged on standard A4 (Letter) pages and ready to print.</p>
         </div>
       </div>
 
@@ -100,9 +126,33 @@ export async function showBatchExportModal(entities, entityType, onClose = null)
   closeBtn.addEventListener('click', closeModal);
   cancelBtn.addEventListener('click', closeModal);
 
+  // Renderer toggle
+  const rendererSelect = modal.querySelector('#batch-renderer');
+  const layoutGroup = modal.querySelector('#batch-layout-group');
+  const autoLayoutGroup = modal.querySelector('#batch-auto-layout-group');
+  const layoutPreview = modal.querySelector('#batch-layout-preview');
+  const infoText = modal.querySelector('#batch-info-text');
+
+  rendererSelect.addEventListener('change', (e) => {
+    const isUnified = e.target.value === 'unified';
+    layoutGroup.style.display = isUnified ? 'none' : 'block';
+    autoLayoutGroup.style.display = isUnified ? 'block' : 'none';
+    layoutPreview.style.display = isUnified ? 'block' : 'none';
+    infoText.textContent = isUnified
+      ? 'Cards will be auto-sized and optimally arranged on A4 pages.'
+      : 'Cards will be arranged on standard A4 (Letter) pages and ready to print.';
+
+    // Generate layout preview if unified renderer
+    if (isUnified) {
+      updateLayoutPreview(entities, entityType, modal);
+    }
+  });
+
   exportBtn.addEventListener('click', async () => {
+    const renderer = modal.querySelector('#batch-renderer').value;
     const theme = modal.querySelector('#batch-theme').value;
     const layout = modal.querySelector('#batch-layout').value;
+    const autoLayout = modal.querySelector('#batch-auto-layout')?.checked ?? true;
 
     exportBtn.disabled = true;
     exportBtn.textContent = 'Generating PDF…';
@@ -110,8 +160,10 @@ export async function showBatchExportModal(entities, entityType, onClose = null)
     try {
       await downloadBatchPDF(entities, {
         entityType,
+        renderer,
         theme,
         layout,
+        autoLayout,
         filename: `${entityType}s-export`,
       });
     } catch (error) {
@@ -126,6 +178,32 @@ export async function showBatchExportModal(entities, entityType, onClose = null)
 
   // Return close function for external control
   return { modal, closeModal };
+}
+
+/**
+ * Update layout preview for new unified renderer
+ * @private
+ */
+function updateLayoutPreview(entities, entityType, modal) {
+  const autoLayout = modal.querySelector('#batch-auto-layout')?.checked ?? true;
+  const previewContainer = modal.querySelector('#batch-preview-pages');
+
+  // Convert entities to card format for preview
+  const cards = entities.map(entity => ({
+    entity,
+    type: entityType,
+  }));
+
+  try {
+    const pages = previewBatchLayout(cards, { autoLayout });
+    previewContainer.innerHTML = `
+      <div class="batch-page-count">
+        <strong>${pages.length} page(s)</strong> — ${entities.length} card(s)
+      </div>
+    `;
+  } catch (error) {
+    previewContainer.innerHTML = `<p style="color: var(--color-danger);">Error calculating layout: ${error.message}</p>`;
+  }
 }
 
 /**

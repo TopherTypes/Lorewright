@@ -9,6 +9,8 @@ import { getViewRoot } from '../ui/shell.js';
 import { formatModifier, formatCR, formatSpeed, formatXP } from '../utils/formatters.js';
 import { navigate } from '../ui/router.js';
 import { downloadCreatureCardPDF } from './pdf-export.js';
+import { renderCreatureCard as renderUnifiedCreatureCard } from '../rendering/unified-card-renderer.js';
+import { selectCreatureLayoutAndSize } from '../rendering/card-layout-system.js';
 
 /**
  * Renders the print preview route (#/creature/:id/print).
@@ -35,6 +37,7 @@ export async function showPrintPreview(id) {
 
   const derived = deriveCreature(creature);
   const cardHtml = renderCreatureCard(derived);
+  const layoutInfo = selectCreatureLayoutAndSize(derived);
 
   root.innerHTML = `
     <div class="print-preview-page">
@@ -44,15 +47,23 @@ export async function showPrintPreview(id) {
           <a href="#/creature/${escapeHtml(id)}" class="btn btn-secondary">← Back to Edit</a>
           <button class="btn btn-primary" id="btn-download-pdf">Download PDF</button>
           <button class="btn btn-secondary" id="btn-print-browser">Print…</button>
+          <button class="btn btn-info" id="btn-toggle-renderer" title="Toggle between old and new renderer">New Renderer</button>
         </div>
       </div>
+      <div class="card-layout-info">
+        <span class="layout-badge">${layoutInfo.layout}</span>
+        <span class="size-badge">${layoutInfo.size}</span>
+      </div>
       <div class="card-preview-outer">
-        <div class="card-print-wrapper">
+        <div class="card-print-wrapper" id="card-preview-content">
           ${cardHtml}
         </div>
       </div>
     </div>
   `;
+
+  // Track which renderer is active
+  let useUnifiedRenderer = false;
 
   root.querySelector('#btn-download-pdf')
     .addEventListener('click', async () => {
@@ -67,8 +78,31 @@ export async function showPrintPreview(id) {
         btn.disabled = false;
       }
     });
+
   root.querySelector('#btn-print-browser')
     .addEventListener('click', () => window.print());
+
+  // Toggle between old and new renderer
+  root.querySelector('#btn-toggle-renderer')
+    .addEventListener('click', () => {
+      useUnifiedRenderer = !useUnifiedRenderer;
+      const btn = root.querySelector('#btn-toggle-renderer');
+      const previewContent = root.querySelector('#card-preview-content');
+
+      if (useUnifiedRenderer) {
+        btn.classList.add('active');
+        const unifiedHtml = renderUnifiedCreatureCard(derived, { theme: 'classic-parchment' });
+        // Wrap in stylesheet link for unified styles
+        const styledHtml = `
+          <link rel="stylesheet" href="styles/print/cards-unified.css">
+          ${unifiedHtml}
+        `;
+        previewContent.innerHTML = styledHtml;
+      } else {
+        btn.classList.remove('active');
+        previewContent.innerHTML = renderCreatureCard(derived);
+      }
+    });
 }
 
 /**
