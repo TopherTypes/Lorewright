@@ -146,6 +146,22 @@ export function getCardStyles() {
       margin: 0 6px;
     }
 
+    .card-charge-tracker {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 2px;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+
+    .charge-box {
+      width: 100%;
+      aspect-ratio: 1;
+      border: 1px solid #3a3a3a;
+      background: #ffffff;
+      border-radius: 1px;
+    }
+
     /* Unidentified card specific */
     .card.unidentified .card-image {
       background: linear-gradient(135deg, #d8d4c8 0%, #e8e4d8 100%);
