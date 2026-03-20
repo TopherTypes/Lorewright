@@ -91,57 +91,68 @@ function renderFormPage(creature) {
 
 // ── Event listeners ───────────────────────────────────────
 
-function attachFormListeners(root, creature) {
-  const form = root.querySelector('#creature-form');
+/**
+ * Handle input events: recalculate on every change
+ */
+function formInputHandler() {
+  scheduleAutosave(getViewRoot());
+  const form = document.querySelector('#creature-form');
+  const updated = readFormData(form, activeCreature);
+  activeCreature = updated;
+  const root = getViewRoot();
+  updateAllOutputs(root, deriveCreature(updated));
+  updateSkillTotals(root, deriveCreature(updated));
+}
 
-  // Single delegated input listener — recalculates on every change
-  form.addEventListener('input', () => {
-    scheduleAutosave(root);
-    const updated = readFormData(form, activeCreature);
-    activeCreature = updated;
-    updateAllOutputs(root, deriveCreature(updated));
-    updateSkillTotals(root, deriveCreature(updated));
-  });
+/**
+ * Handle click events: delegated handlers for add/remove and special buttons
+ */
+function formClickHandler(event) {
+  const form = document.querySelector('#creature-form');
+  const root = getViewRoot();
+  const target = event.target;
 
   // Dynamic list: add item
-  form.addEventListener('click', (event) => {
-    const addBtn = event.target.closest('[data-add-list]');
-    if (addBtn) {
-      handleAddListItem(form, addBtn.dataset.addList, root);
-      return;
-    }
+  const addBtn = target.closest('[data-add-list]');
+  if (addBtn) {
+    handleAddListItem(form, addBtn.dataset.addList, root);
+    return;
+  }
 
-    // Dynamic list: remove item
-    const removeBtn = event.target.closest('.remove-item-btn');
-    if (removeBtn) {
-      handleRemoveListItem(form, removeBtn, root);
-      return;
-    }
+  // Dynamic list: remove item
+  const removeBtn = target.closest('.remove-item-btn');
+  if (removeBtn) {
+    handleRemoveListItem(form, removeBtn, root);
+    return;
+  }
 
-    // Special ability: remove
-    const removeSaBtn = event.target.closest('[data-remove-sa]');
-    if (removeSaBtn) {
-      handleRemoveSpecialAbility(form, parseInt(removeSaBtn.dataset.removeSa, 10), root);
-      return;
-    }
-  });
+  // Special ability: remove
+  const removeSaBtn = target.closest('[data-remove-sa]');
+  if (removeSaBtn) {
+    handleRemoveSpecialAbility(form, parseInt(removeSaBtn.dataset.removeSa, 10), root);
+    return;
+  }
 
   // Add special ability button
-  root.querySelector('#add-special-ability')?.addEventListener('click', () => {
+  const addSaBtn = target.closest('#add-special-ability');
+  if (addSaBtn) {
     handleAddSpecialAbility(form, root);
-  });
+    return;
+  }
 
   // Skills toggle
-  root.querySelector('#skills-toggle')?.addEventListener('click', (event) => {
-    const btn = event.currentTarget;
-    const showAll = btn.dataset.showAll === 'true';
-    btn.dataset.showAll = showAll ? 'false' : 'true';
-    btn.textContent = showAll ? 'Show zero-rank skills' : 'Hide zero-rank skills';
+  const skillsToggle = target.closest('#skills-toggle');
+  if (skillsToggle) {
+    const showAll = skillsToggle.dataset.showAll === 'true';
+    skillsToggle.dataset.showAll = showAll ? 'false' : 'true';
+    skillsToggle.textContent = showAll ? 'Show zero-rank skills' : 'Hide zero-rank skills';
     updateSkillVisibility(root, !showAll);
-  });
+    return;
+  }
 
   // Apply suggested XP from CR
-  root.querySelector('#btn-apply-xp')?.addEventListener('click', () => {
+  const applyXpBtn = target.closest('#btn-apply-xp');
+  if (applyXpBtn) {
     const derived = deriveCreature(activeCreature);
     if (derived.suggestedXP == null) return;
     const xpInput = form.querySelector('[data-field="xp"]');
@@ -149,10 +160,12 @@ function attachFormListeners(root, creature) {
       xpInput.value = derived.suggestedXP;
       xpInput.dispatchEvent(new Event('input', { bubbles: true }));
     }
-  });
+    return;
+  }
 
   // Apply HP average from hit dice
-  root.querySelector('#btn-apply-hp')?.addEventListener('click', () => {
+  const applyHpBtn = target.closest('#btn-apply-hp');
+  if (applyHpBtn) {
     const derived = deriveCreature(activeCreature);
     if (derived.defence.hp.avgFromHD == null) return;
     const hpInput = form.querySelector('[data-field="defence.hp.total"]');
@@ -160,12 +173,34 @@ function attachFormListeners(root, creature) {
       hpInput.value = derived.defence.hp.avgFromHD;
       hpInput.dispatchEvent(new Event('input', { bubbles: true }));
     }
-  });
+    return;
+  }
 
   // Save button
-  root.querySelector('#btn-save')?.addEventListener('click', () => {
+  const saveBtn = target.closest('#btn-save');
+  if (saveBtn) {
     saveNow(root);
-  });
+    return;
+  }
+}
+
+function attachFormListeners(root, creature) {
+  const form = root.querySelector('#creature-form');
+
+  // Remove old listeners if they exist
+  if (form._inputHandler) {
+    form.removeEventListener('input', form._inputHandler);
+  }
+  if (form._clickHandler) {
+    form.removeEventListener('click', form._clickHandler);
+  }
+
+  // Attach new listeners and store references for future cleanup
+  form.addEventListener('input', formInputHandler);
+  form._inputHandler = formInputHandler;
+
+  form.addEventListener('click', formClickHandler);
+  form._clickHandler = formClickHandler;
 }
 
 // ── Read form data ────────────────────────────────────────
