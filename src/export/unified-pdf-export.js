@@ -120,7 +120,7 @@ async function downloadCardPDF(htmlString, fileOptions, cardOptions) {
     filename: fileOptions.filename || 'card.pdf',
     image: { type: 'png', quality: 0.98 },
     html2canvas: {
-      scale: 2,
+      scale: 3,
       useCORS: true,
       allowTaint: true,
     },
