@@ -5,6 +5,7 @@
 
 import { STANDARD_SKILLS } from '../utils/pf1e-modifiers.js';
 import { formatModifier } from '../utils/formatters.js';
+import { getDamageTypeOptions } from '../constants/damage-types.js';
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -35,9 +36,12 @@ function numInput(name, value = 0, extra = '') {
 }
 
 function selectInput(name, options, value = '') {
-  const opts = options.map(o =>
-    `<option value="${escapeHtml(o)}" ${o === value ? 'selected' : ''}>${escapeHtml(o)}</option>`
-  ).join('');
+  const opts = options.map(o => {
+    // Handle both string values and {label, value} objects
+    const optValue = typeof o === 'string' ? o : o.value;
+    const optLabel = typeof o === 'string' ? o : o.label;
+    return `<option value="${escapeHtml(optValue)}" ${optValue === value ? 'selected' : ''}>${escapeHtml(optLabel)}</option>`;
+  }).join('');
   return `<select data-field="${name}">${opts}</select>`;
 }
 
@@ -64,6 +68,62 @@ function section(title, body, open = false) {
         ${body}
       </div>
     </details>
+  `;
+}
+
+// ── Helper functions for structured lists ─────────────────
+
+function renderMeleeAttacksList(attacks) {
+  const rows = (attacks ?? []).map((attack, i) => {
+    // Handle both string attacks (legacy) and object attacks {name, damageType}
+    const attackName = typeof attack === 'string' ? attack : (attack.name ?? '');
+    const damageType = typeof attack === 'object' ? (attack.damageType ?? '') : '';
+    return `
+      <div class="attack-row" data-attack-index="${i}">
+        <div class="form-grid-2">
+          <input type="text" data-attack-field="name" data-attack-index="${i}" value="${escapeHtml(attackName)}" placeholder="e.g. longsword +8 (1d8+4/19-20)" style="flex:2">
+          <select data-attack-field="damageType" data-attack-index="${i}" style="flex:1">
+            ${getDamageTypeOptions().map(opt => `<option value="${escapeHtml(opt.value)}" ${opt.value === damageType ? 'selected' : ''}>${escapeHtml(opt.label)}</option>`).join('')}
+          </select>
+        </div>
+        <button type="button" class="remove-item-btn" data-remove-melee="${i}" title="Remove">×</button>
+      </div>
+    `;
+  }).join('');
+  return `
+    <div id="melee-attacks-list">
+      ${rows}
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm add-item-btn" id="add-melee-attack">
+      + Add Melee Attack
+    </button>
+  `;
+}
+
+function renderRangedAttacksList(attacks) {
+  const rows = (attacks ?? []).map((attack, i) => {
+    // Handle both string attacks (legacy) and object attacks {name, damageType}
+    const attackName = typeof attack === 'string' ? attack : (attack.name ?? '');
+    const damageType = typeof attack === 'object' ? (attack.damageType ?? '') : '';
+    return `
+      <div class="attack-row" data-attack-index="${i}">
+        <div class="form-grid-2">
+          <input type="text" data-attack-field="name" data-attack-index="${i}" value="${escapeHtml(attackName)}" placeholder="e.g. longbow +6 (1d8/×3)" style="flex:2">
+          <select data-attack-field="damageType" data-attack-index="${i}" style="flex:1">
+            ${getDamageTypeOptions().map(opt => `<option value="${escapeHtml(opt.value)}" ${opt.value === damageType ? 'selected' : ''}>${escapeHtml(opt.label)}</option>`).join('')}
+          </select>
+        </div>
+        <button type="button" class="remove-item-btn" data-remove-ranged="${i}" title="Remove">×</button>
+      </div>
+    `;
+  }).join('');
+  return `
+    <div id="ranged-attacks-list">
+      ${rows}
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm add-item-btn" id="add-ranged-attack">
+      + Add Ranged Attack
+    </button>
   `;
 }
 
@@ -190,8 +250,8 @@ export function renderOffenceSection(c) {
       ${field('Climb (ft.)', numInput('offence.speed.climb',  speed.climb))}
       ${field('Burrow (ft.)',numInput('offence.speed.burrow', speed.burrow))}
     </div>
-    ${field('Melee Attacks',   dynamicList('offence.melee',          c.offence.melee,          'e.g. longsword +8 (1d8+4/19-20)'))}
-    ${field('Ranged Attacks',  dynamicList('offence.ranged',         c.offence.ranged,         'e.g. longbow +6 (1d8/×3)'))}
+    ${field('Melee Attacks',   renderMeleeAttacksList(c.offence.melee))}
+    ${field('Ranged Attacks',  renderRangedAttacksList(c.offence.ranged))}
     ${field('Special Attacks', dynamicList('offence.specialAttacks', c.offence.specialAttacks, 'e.g. breath weapon'))}
     <div class="form-grid-2">
       ${field('Space', textInput('offence.space', c.offence.space, 'placeholder="e.g. 10 ft."'))}
@@ -320,6 +380,10 @@ export function renderSpecialAbilitiesSection(c) {
 
 export function renderDescriptionSection(c) {
   return section('Description', `
-    <textarea data-field="description" rows="6">${escapeHtml(c.description)}</textarea>
+    ${field('Description', `<textarea data-field="description" rows="6">${escapeHtml(c.description)}</textarea>`)}
+    <div class="form-grid-2">
+      ${field('Image URL', textInput('imageUrl', c.imageUrl, 'placeholder="https://example.com/image.jpg"'))}
+      ${field('Or Upload Image', `<input type="file" id="image-upload-creature" accept="image/*">`)}
+    </div>
   `);
 }
