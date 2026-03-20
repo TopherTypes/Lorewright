@@ -112,9 +112,12 @@ function formClickHandler(event) {
   const root = getViewRoot();
   const target = event.target;
 
+  console.log('[formClickHandler] Click event target:', target, 'Classes:', target.className);
+
   // Dynamic list: add item
   const addBtn = target.closest('[data-add-list]');
   if (addBtn) {
+    console.log('[formClickHandler] Add button triggered for:', addBtn.dataset.addList);
     handleAddListItem(form, addBtn.dataset.addList, root);
     return;
   }
@@ -122,6 +125,7 @@ function formClickHandler(event) {
   // Special ability: remove (check before generic .remove-item-btn)
   const removeSaBtn = target.closest('[data-remove-sa]');
   if (removeSaBtn) {
+    console.log('[formClickHandler] Remove special ability button triggered, index:', removeSaBtn.dataset.removeSa);
     handleRemoveSpecialAbility(form, parseInt(removeSaBtn.dataset.removeSa, 10), root);
     return;
   }
@@ -129,6 +133,7 @@ function formClickHandler(event) {
   // Skill: remove (check before generic .remove-item-btn)
   const removeSkillBtn = target.closest('[data-remove-skill]');
   if (removeSkillBtn) {
+    console.log('[formClickHandler] Remove skill button triggered, index:', removeSkillBtn.dataset.removeSkill);
     handleRemoveSkill(form, parseInt(removeSkillBtn.dataset.removeSkill, 10), root);
     return;
   }
@@ -136,6 +141,7 @@ function formClickHandler(event) {
   // Dynamic list: remove item
   const removeBtn = target.closest('.remove-item-btn');
   if (removeBtn) {
+    console.log('[formClickHandler] Remove dynamic list item triggered, data:', { listField: removeBtn.dataset.listField, index: removeBtn.dataset.index });
     handleRemoveListItem(form, removeBtn, root);
     return;
   }
@@ -194,11 +200,15 @@ function formClickHandler(event) {
 function attachFormListeners(root, creature) {
   const form = root.querySelector('#creature-form');
 
+  console.log('[attachFormListeners] Attaching listeners to form');
+
   // Remove old listeners if they exist
   if (form._inputHandler) {
+    console.log('[attachFormListeners] Removing old input handler');
     form.removeEventListener('input', form._inputHandler);
   }
   if (form._clickHandler) {
+    console.log('[attachFormListeners] Removing old click handler');
     form.removeEventListener('click', form._clickHandler);
   }
 
@@ -208,6 +218,8 @@ function attachFormListeners(root, creature) {
 
   form.addEventListener('click', formClickHandler);
   form._clickHandler = formClickHandler;
+
+  console.log('[attachFormListeners] Listeners attached');
 }
 
 // ── Read form data ────────────────────────────────────────
@@ -220,6 +232,7 @@ function attachFormListeners(root, creature) {
  * @returns {object} Updated creature
  */
 function readFormData(form, base) {
+  console.log('[readFormData] Starting to read form data from base creature');
   // Deep-clone the base so we don't mutate the stored object
   const creature = structuredClone(base);
 
@@ -240,6 +253,7 @@ function readFormData(form, base) {
   listFields.forEach(listField => {
     const inputs = form.querySelectorAll(`[data-list-field="${listField}"]`);
     const values = Array.from(inputs).map(i => i.value);
+    console.log(`[readFormData] List field "${listField}": ${inputs.length} inputs, values:`, values);
     setNestedValue(creature, listField, values);
   });
 
@@ -389,12 +403,19 @@ function handleAddListItem(form, listField, root) {
 function handleRemoveListItem(form, removeBtn, root) {
   const listField = removeBtn.dataset.listField;
   const index     = parseInt(removeBtn.dataset.index, 10);
+  console.log('[handleRemoveListItem] Removing from', listField, 'at index', index);
+
   const updated   = readFormData(form, activeCreature);
   activeCreature  = updated;
 
   const currentList = getNestedValue(activeCreature, listField) ?? [];
+  console.log('[handleRemoveListItem] Current list before splice:', currentList);
+
   currentList.splice(index, 1);
+  console.log('[handleRemoveListItem] Current list after splice:', currentList);
+
   setNestedValue(activeCreature, listField, currentList);
+  console.log('[handleRemoveListItem] Updated activeCreature:', activeCreature);
 
   refreshForm(root);
 }
@@ -407,16 +428,22 @@ function handleAddSpecialAbility(form, root) {
 }
 
 function handleRemoveSpecialAbility(form, index, root) {
+  console.log('[handleRemoveSpecialAbility] Removing special ability at index', index);
   const updated = readFormData(form, activeCreature);
   activeCreature = updated;
+  console.log('[handleRemoveSpecialAbility] Special abilities before splice:', activeCreature.specialAbilities);
   activeCreature.specialAbilities.splice(index, 1);
+  console.log('[handleRemoveSpecialAbility] Special abilities after splice:', activeCreature.specialAbilities);
   refreshForm(root);
 }
 
 function handleRemoveSkill(form, index, root) {
+  console.log('[handleRemoveSkill] Removing skill at index', index);
   const updated = readFormData(form, activeCreature);
   activeCreature = updated;
+  console.log('[handleRemoveSkill] Skills before splice:', activeCreature.statistics.skills);
   activeCreature.statistics.skills.splice(index, 1);
+  console.log('[handleRemoveSkill] Skills after splice:', activeCreature.statistics.skills);
   refreshForm(root);
 }
 
@@ -425,12 +452,14 @@ function handleRemoveSkill(form, index, root) {
  * Used after adding/removing dynamic list items.
  */
 function refreshForm(root) {
+  console.log('[refreshForm] Starting form refresh with activeCreature:', activeCreature);
   const showAll = root.querySelector('#skills-toggle')?.dataset?.showAll === 'true';
   root.innerHTML = renderFormPage(activeCreature);
   attachFormListeners(root, activeCreature);
   updateAllOutputs(root, deriveCreature(activeCreature));
   updateSkillVisibility(root, showAll);
   markDirty(root);
+  console.log('[refreshForm] Form refresh complete');
 }
 
 /**
