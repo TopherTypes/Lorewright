@@ -202,22 +202,28 @@ function attachFormListeners(root, creature) {
 
   console.log('[attachFormListeners] Attaching listeners to form');
 
-  // Remove old listeners if they exist
+  // Remove old listeners if they exist (defensive cleanup)
   if (form._inputHandler) {
     console.log('[attachFormListeners] Removing old input handler');
     form.removeEventListener('input', form._inputHandler);
+    form._inputHandler = null;
   }
   if (form._clickHandler) {
     console.log('[attachFormListeners] Removing old click handler');
     form.removeEventListener('click', form._clickHandler);
+    form._clickHandler = null;
   }
 
-  // Attach new listeners and store references for future cleanup
-  form.addEventListener('input', formInputHandler);
-  form._inputHandler = formInputHandler;
+  // Only attach if not already attached (prevent duplicates)
+  if (!form._inputHandler) {
+    form.addEventListener('input', formInputHandler);
+    form._inputHandler = formInputHandler;
+  }
 
-  form.addEventListener('click', formClickHandler);
-  form._clickHandler = formClickHandler;
+  if (!form._clickHandler) {
+    form.addEventListener('click', formClickHandler);
+    form._clickHandler = formClickHandler;
+  }
 
   console.log('[attachFormListeners] Listeners attached');
 }
@@ -395,7 +401,9 @@ function handleAddListItem(form, listField, root) {
 
   // Add empty string to the list
   const currentList = getNestedValue(activeCreature, listField) ?? [];
-  setNestedValue(activeCreature, listField, [...currentList, '']);
+  // Create a new array to avoid mutation issues
+  const newList = [...currentList, ''];
+  setNestedValue(activeCreature, listField, newList);
 
   refreshForm(root);
 }
@@ -411,12 +419,19 @@ function handleRemoveListItem(form, removeBtn, root) {
   const currentList = getNestedValue(activeCreature, listField) ?? [];
   console.log('[handleRemoveListItem] Current list before splice:', currentList);
 
-  currentList.splice(index, 1);
-  console.log('[handleRemoveListItem] Current list after splice:', currentList);
+  // Ensure we have a valid index before splicing
+  if (index >= 0 && index < currentList.length) {
+    currentList.splice(index, 1);
+    console.log('[handleRemoveListItem] Current list after splice:', currentList);
 
-  setNestedValue(activeCreature, listField, currentList);
+    // Create a new array reference to avoid mutation issues
+    const newList = Array.from(currentList);
+    setNestedValue(activeCreature, listField, newList);
+  } else {
+    console.warn('[handleRemoveListItem] Invalid index:', index, 'for list length:', currentList.length);
+  }
+
   console.log('[handleRemoveListItem] Updated activeCreature:', activeCreature);
-
   refreshForm(root);
 }
 
@@ -432,7 +447,13 @@ function handleRemoveSpecialAbility(form, index, root) {
   const updated = readFormData(form, activeCreature);
   activeCreature = updated;
   console.log('[handleRemoveSpecialAbility] Special abilities before splice:', activeCreature.specialAbilities);
-  activeCreature.specialAbilities.splice(index, 1);
+
+  if (index >= 0 && index < activeCreature.specialAbilities.length) {
+    activeCreature.specialAbilities.splice(index, 1);
+  } else {
+    console.warn('[handleRemoveSpecialAbility] Invalid index:', index, 'for list length:', activeCreature.specialAbilities.length);
+  }
+
   console.log('[handleRemoveSpecialAbility] Special abilities after splice:', activeCreature.specialAbilities);
   refreshForm(root);
 }
@@ -442,7 +463,13 @@ function handleRemoveSkill(form, index, root) {
   const updated = readFormData(form, activeCreature);
   activeCreature = updated;
   console.log('[handleRemoveSkill] Skills before splice:', activeCreature.statistics.skills);
-  activeCreature.statistics.skills.splice(index, 1);
+
+  if (index >= 0 && index < activeCreature.statistics.skills.length) {
+    activeCreature.statistics.skills.splice(index, 1);
+  } else {
+    console.warn('[handleRemoveSkill] Invalid index:', index, 'for list length:', activeCreature.statistics.skills.length);
+  }
+
   console.log('[handleRemoveSkill] Skills after splice:', activeCreature.statistics.skills);
   refreshForm(root);
 }
@@ -460,13 +487,19 @@ function refreshForm(root) {
   if (oldForm) {
     if (oldForm._inputHandler) {
       oldForm.removeEventListener('input', oldForm._inputHandler);
+      oldForm._inputHandler = null;
     }
     if (oldForm._clickHandler) {
       oldForm.removeEventListener('click', oldForm._clickHandler);
+      oldForm._clickHandler = null;
     }
   }
 
+  // Clear the root and render new form
+  // (innerHTML replacement should clear everything, but being explicit)
+  root.textContent = '';
   root.innerHTML = renderFormPage(activeCreature);
+
   attachFormListeners(root, activeCreature);
   updateAllOutputs(root, deriveCreature(activeCreature));
   updateSkillVisibility(root, showAll);
