@@ -150,16 +150,21 @@ export function getCardStyles() {
       display: grid;
       grid-template-columns: repeat(10, 1fr);
       gap: 2px;
-      margin-top: 4px;
+      margin-top: 6px;
+      margin-bottom: 4px;
+      padding: 0;
       flex-shrink: 0;
+      width: 100%;
     }
 
     .charge-box {
       width: 100%;
-      aspect-ratio: 1;
-      border: 1px solid #3a3a3a;
+      height: 16px;
+      min-height: 16px;
+      border: 1.5px solid #2a2a2a;
       background: #ffffff;
-      border-radius: 1px;
+      border-radius: 0;
+      box-sizing: border-box;
     }
 
     /* Unidentified card specific */
