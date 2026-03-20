@@ -4,6 +4,7 @@
 
 import { getAllCreatures, clearAllCreatures, importCreatures } from '../storage/creatures.js';
 import { getAllItems, clearAllItems, importItems } from '../storage/items.js';
+import { getAllSpells, clearAllSpells, importSpells } from '../storage/spells.js';
 import { validateExportFile } from './validators.js';
 import { formatDateForFilename } from './formatters.js';
 
@@ -17,7 +18,7 @@ export const APP_VERSION = '0.1.0';
  * @returns {Promise<void>}
  */
 export async function exportAllData() {
-  const [creatures, items] = await Promise.all([getAllCreatures(), getAllItems()]);
+  const [creatures, items, spells] = await Promise.all([getAllCreatures(), getAllItems(), getAllSpells()]);
 
   const exportObj = {
     // Note: DATA_MODEL.md has a typo "lorew right_version" (space). Correct key is below.
@@ -25,6 +26,7 @@ export async function exportAllData() {
     exportedAt: new Date().toISOString(),
     creatures,
     items,
+    spells,
     // Phase 2+ entities (empty arrays for forward-compatibility)
     npcs: [],
     locations: [],
@@ -85,20 +87,22 @@ export async function importData(file) {
 
   const creatureCount = (data.creatures ?? []).length;
   const itemCount     = (data.items ?? []).length;
+  const spellCount    = (data.spells ?? []).length;
   const confirmed = window.confirm(
-    `This will replace all existing data with ${creatureCount} creature(s) and ${itemCount} item(s) from the import file.${versionWarning}\n\nContinue?`
+    `This will replace all existing data with ${creatureCount} creature(s), ${itemCount} item(s), and ${spellCount} spell(s) from the import file.${versionWarning}\n\nContinue?`
   );
 
   if (!confirmed) {
     return { success: false, message: 'Import cancelled.' };
   }
 
-  await Promise.all([clearAllCreatures(), clearAllItems()]);
+  await Promise.all([clearAllCreatures(), clearAllItems(), clearAllSpells()]);
   if (creatureCount > 0) await importCreatures(data.creatures);
   if (itemCount > 0)     await importItems(data.items);
+  if (spellCount > 0)    await importSpells(data.spells);
 
   return {
     success: true,
-    message: `Imported ${creatureCount} creature(s) and ${itemCount} item(s) successfully.`,
+    message: `Imported ${creatureCount} creature(s), ${itemCount} item(s), and ${spellCount} spell(s) successfully.`,
   };
 }

@@ -3,14 +3,15 @@
 // Entity modules must not call IndexedDB directly — use the facade files
 // (creatures.js, items.js, settings.js) which call into this module.
 //
-// Database: "lorewright", version 2
+// Database: "lorewright", version 3
 // Object stores created in onupgradeneeded:
 //   creatures  — keyPath: 'meta.id'
 //   items      — keyPath: 'meta.id'
+//   spells     — keyPath: 'meta.id'
 //   settings   — keyPath: 'id'
 
 const DB_NAME = 'lorewright';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 // Cached database instance — opened once, reused for all operations.
 // This is a Promise<IDBDatabase> so concurrent callers all await the same open.
@@ -40,6 +41,11 @@ function openDatabase() {
       // Items store — keyed by the nested meta.id field
       if (!db.objectStoreNames.contains('items')) {
         db.createObjectStore('items', { keyPath: 'meta.id' });
+      }
+
+      // Spells store — keyed by the nested meta.id field
+      if (!db.objectStoreNames.contains('spells')) {
+        db.createObjectStore('spells', { keyPath: 'meta.id' });
       }
 
       // Settings store — keyed by top-level id field (e.g. 'campaign')
