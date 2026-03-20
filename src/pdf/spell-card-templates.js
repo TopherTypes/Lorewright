@@ -17,7 +17,7 @@ export function createSpellCardHTML(spell) {
   const spellResistance = spell.spellResistance ? 'Yes' : 'No';
   const description = escapeHtml(spell.description || '');
 
-  // Build components string
+  // Build components string with badges
   const components = spell.components || {};
   const componentsList = [];
   if (components.verbal) componentsList.push('V');
@@ -50,7 +50,7 @@ export function createSpellCardHTML(spell) {
     <div class="spell-card">
       <div class="card-header">
         <div class="card-name">${name}</div>
-        <div class="card-level-school">Level ${level} ${school}</div>
+        <div class="card-level-school">${level === 0 ? 'Cantrip' : `Level ${level}`} ${school ? '• ' + school : ''}</div>
       </div>
 
       <div class="card-mechanics">

@@ -265,10 +265,14 @@ function attachSpellPickerListeners(container, state, onConfirm, onCancel) {
 
   // Confirm button
   confirmBtn.addEventListener('click', () => {
-    const selectedSpells = Array.from(state.selectedIds).map(spellId => ({
-      spellId,
-      level: state.allSpells.find(s => s.meta.id === spellId)?.level ?? 0,
-    }));
+    const selectedSpells = Array.from(state.selectedIds).map(spellId => {
+      const spell = state.allSpells.find(s => s.meta.id === spellId);
+      return {
+        spellId,
+        level: spell?.level ?? 0,
+        spellName: spell?.name ?? 'Unknown Spell',
+      };
+    });
     closeModal(container);
     onConfirm(selectedSpells);
   });

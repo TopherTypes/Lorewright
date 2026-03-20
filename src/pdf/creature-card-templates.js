@@ -282,8 +282,9 @@ export function createSpellcasterCardHTML(creature, imageUrl, orientation = 'lan
     spellIds.forEach(spellRef => {
       const level = spellRef.level ?? 0;
       if (!levels[level]) levels[level] = [];
-      // Store spell ID reference (actual spell names will be in detail cards)
-      levels[level].push(`Spell ID: ${spellRef.spellId.substring(0, 8)}`);
+      // Use spell name if available, fallback to spell ID
+      const displayName = spellRef.spellName || `Spell ID: ${spellRef.spellId.substring(0, 8)}`;
+      levels[level].push(escapeHtml(displayName));
     });
     return levels;
   };
