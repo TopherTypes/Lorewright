@@ -271,7 +271,7 @@ function renderSkillRows(skills) {
         <input type="text"   data-skill-field="name"  data-skill-index="${i}" value="${escapeHtml(skill.name)}" placeholder="Skill name">
         <input type="number" data-skill-field="ranks" data-skill-index="${i}" value="${skill.ranks ?? 0}" min="0">
         <span class="skill-total" id="out-skill-${i}">—</span>
-        <button type="button" class="remove-item-btn" data-remove-skill="${i}" title="Remove">×</button>
+        <button type="button" class="btn btn-ghost btn-xs" data-remove-skill="${i}" title="Remove">×</button>
       </div>
     `;
   }).join('');

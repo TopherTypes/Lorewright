@@ -119,17 +119,24 @@ function formClickHandler(event) {
     return;
   }
 
+  // Special ability: remove (check before generic .remove-item-btn)
+  const removeSaBtn = target.closest('[data-remove-sa]');
+  if (removeSaBtn) {
+    handleRemoveSpecialAbility(form, parseInt(removeSaBtn.dataset.removeSa, 10), root);
+    return;
+  }
+
+  // Skill: remove (check before generic .remove-item-btn)
+  const removeSkillBtn = target.closest('[data-remove-skill]');
+  if (removeSkillBtn) {
+    handleRemoveSkill(form, parseInt(removeSkillBtn.dataset.removeSkill, 10), root);
+    return;
+  }
+
   // Dynamic list: remove item
   const removeBtn = target.closest('.remove-item-btn');
   if (removeBtn) {
     handleRemoveListItem(form, removeBtn, root);
-    return;
-  }
-
-  // Special ability: remove
-  const removeSaBtn = target.closest('[data-remove-sa]');
-  if (removeSaBtn) {
-    handleRemoveSpecialAbility(form, parseInt(removeSaBtn.dataset.removeSa, 10), root);
     return;
   }
 
@@ -403,6 +410,13 @@ function handleRemoveSpecialAbility(form, index, root) {
   const updated = readFormData(form, activeCreature);
   activeCreature = updated;
   activeCreature.specialAbilities.splice(index, 1);
+  refreshForm(root);
+}
+
+function handleRemoveSkill(form, index, root) {
+  const updated = readFormData(form, activeCreature);
+  activeCreature = updated;
+  activeCreature.statistics.skills.splice(index, 1);
   refreshForm(root);
 }
 
