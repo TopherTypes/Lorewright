@@ -50,7 +50,7 @@ export function createIdentifiedCardHTML(item) {
     : '';
 
   // Charge tracker for wands
-  const chargeTrackerHtml = item.type === 'wand' && item.charges > 0
+  const chargeTrackerHtml = item.type && item.type.toLowerCase() === 'wand' && item.charges > 0
     ? createChargeTrackerHtml(item.charges)
     : '';
 
