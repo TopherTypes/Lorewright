@@ -6,6 +6,7 @@
 import { STANDARD_SKILLS } from '../utils/pf1e-modifiers.js';
 import { formatModifier } from '../utils/formatters.js';
 import { getDamageTypeOptions } from '../constants/damage-types.js';
+import { hasLinkedSpells } from '../entities/creature.js';
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -237,6 +238,40 @@ export function renderDefenceSection(c) {
   `, true);
 }
 
+// ── Helper for spell picker ───────────────────────────────
+
+function renderSpellPickerList(spells = [], spellType = 'spellsKnown') {
+  const typeLabels = {
+    'spellsKnown': 'Spells Known',
+    'spellsPrepared': 'Spells Prepared',
+    'spellLikeAbilities': 'Spell-Like Abilities',
+  };
+
+  const spellRows = spells.map((spellRef, i) => `
+    <div class="spell-picker-item" data-spell-list="${spellType}" data-spell-id="${escapeHtml(spellRef.spellId)}" data-level="${spellRef.level ?? ''}">
+      <span class="spell-name">Spell ID: ${escapeHtml(spellRef.spellId.substring(0, 8))}…</span>
+      <button type="button" class="remove-item-btn" data-remove-spell="${spellType}" data-spell-id="${escapeHtml(spellRef.spellId)}" title="Remove">×</button>
+    </div>
+  `).join('');
+
+  const typeLabel = typeLabels[spellType] || spellType;
+  return `
+    <div class="spell-picker-section" data-spell-type="${escapeHtml(spellType)}">
+      <div class="spell-picker-list" data-spell-list="${escapeHtml(spellType)}">
+        ${spellRows}
+      </div>
+      <div class="spell-picker-buttons">
+        <button type="button" class="btn btn-ghost btn-sm" data-add-spell-single="${escapeHtml(spellType)}">
+          + Add One
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm" data-add-spell-bulk="${escapeHtml(spellType)}">
+          + Bulk Add
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 // ── Section 4: Offence ────────────────────────────────────
 
 export function renderOffenceSection(c) {
@@ -257,9 +292,9 @@ export function renderOffenceSection(c) {
       ${field('Space', textInput('offence.space', c.offence.space, 'placeholder="e.g. 10 ft."'))}
       ${field('Reach', textInput('offence.reach', c.offence.reach, 'placeholder="e.g. 5 ft."'))}
     </div>
-    ${field('Spells Known',         `<textarea data-field="offence.spellsKnown" rows="3">${escapeHtml(c.offence.spellsKnown)}</textarea>`)}
-    ${field('Spells Prepared',      `<textarea data-field="offence.spellsPrepared" rows="3">${escapeHtml(c.offence.spellsPrepared)}</textarea>`)}
-    ${field('Spell-Like Abilities', `<textarea data-field="offence.spellLikeAbilities" rows="3">${escapeHtml(c.offence.spellLikeAbilities)}</textarea>`)}
+    ${field('Spells Known',         renderSpellPickerList(c.offence.spellsKnownIds ?? [], 'spellsKnown'))}
+    ${field('Spells Prepared',      renderSpellPickerList(c.offence.spellsPreparedIds ?? [], 'spellsPrepared'))}
+    ${field('Spell-Like Abilities', renderSpellPickerList(c.offence.spellLikeAbilityIds ?? [], 'spellLikeAbilities'))}
   `);
 }
 

@@ -90,6 +90,10 @@ export function createEmptyCreature() {
       spellsKnown:       '',
       spellsPrepared:    '',
       spellLikeAbilities:'',
+      // NEW: Spell ID arrays for structured spell linking
+      spellsKnownIds:       [],
+      spellsPreparedIds:    [],
+      spellLikeAbilityIds:  [],
     },
     statistics: {
       str: 10,
@@ -181,4 +185,89 @@ export function deriveCreature(creature) {
   });
 
   return c;
+}
+
+/**
+ * Adds a spell to a creature's spell list by ID.
+ * @param {object} creature The creature to add the spell to
+ * @param {string} spellId The ID of the spell to add
+ * @param {string} spellType One of: 'spellsKnown', 'spellsPrepared', 'spellLikeAbilities'
+ * @param {number} level The spell level (0-9), not required for spellLikeAbilities
+ * @returns {object} The updated creature
+ */
+export function addSpellToCreature(creature, spellId, spellType, level = 0) {
+  const typeMap = {
+    'spellsKnown': 'spellsKnownIds',
+    'spellsPrepared': 'spellsPreparedIds',
+    'spellLikeAbilities': 'spellLikeAbilityIds',
+  };
+
+  const fieldName = typeMap[spellType];
+  if (!fieldName) {
+    throw new Error(`Invalid spell type: ${spellType}`);
+  }
+
+  const spellArray = creature.offence[fieldName] ?? [];
+
+  // Check for duplicates
+  if (spellArray.some(s => s.spellId === spellId)) {
+    return creature;
+  }
+
+  const newSpell = spellType === 'spellLikeAbilities'
+    ? { spellId }
+    : { spellId, level };
+
+  return {
+    ...creature,
+    offence: {
+      ...creature.offence,
+      [fieldName]: [...spellArray, newSpell]
+    }
+  };
+}
+
+/**
+ * Removes a spell from a creature's spell list.
+ * @param {object} creature The creature to remove the spell from
+ * @param {string} spellId The ID of the spell to remove
+ * @param {string} spellType One of: 'spellsKnown', 'spellsPrepared', 'spellLikeAbilities'
+ * @returns {object} The updated creature
+ */
+export function removeSpellFromCreature(creature, spellId, spellType) {
+  const typeMap = {
+    'spellsKnown': 'spellsKnownIds',
+    'spellsPrepared': 'spellsPreparedIds',
+    'spellLikeAbilities': 'spellLikeAbilityIds',
+  };
+
+  const fieldName = typeMap[spellType];
+  if (!fieldName) {
+    throw new Error(`Invalid spell type: ${spellType}`);
+  }
+
+  const spellArray = creature.offence[fieldName] ?? [];
+  const filtered = spellArray.filter(s => s.spellId !== spellId);
+
+  return {
+    ...creature,
+    offence: {
+      ...creature.offence,
+      [fieldName]: filtered
+    }
+  };
+}
+
+/**
+ * Checks if a creature has any linked spells.
+ * @param {object} creature The creature to check
+ * @returns {boolean} True if the creature has any spell IDs linked
+ */
+export function hasLinkedSpells(creature) {
+  const offence = creature.offence ?? {};
+  return (
+    (offence.spellsKnownIds?.length ?? 0) > 0 ||
+    (offence.spellsPreparedIds?.length ?? 0) > 0 ||
+    (offence.spellLikeAbilityIds?.length ?? 0) > 0
+  );
 }

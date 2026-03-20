@@ -105,9 +105,26 @@ A combatant stat block, fully PF1e-compliant.
     "space": "string?",             // e.g. "10 ft."
     "reach": "string?",
     "specialAttacks": ["string"],
-    "spellsKnown": "string?",
-    "spellsPrepared": "string?",
-    "spellLikeAbilities": "string?"
+    "spellsKnown": "string?",       // Legacy text-based spell list (for backward compatibility)
+    "spellsPrepared": "string?",    // Legacy text-based spell list (for backward compatibility)
+    "spellLikeAbilities": "string?",// Legacy text-based spell list (for backward compatibility)
+    "spellsKnownIds": [             // Structured spell IDs linked to spell library
+      {
+        "spellId": "uuid-v4",
+        "level": "number (0-9)"
+      }
+    ],
+    "spellsPreparedIds": [          // Structured spell IDs linked to spell library
+      {
+        "spellId": "uuid-v4",
+        "level": "number (0-9)"
+      }
+    ],
+    "spellLikeAbilityIds": [        // Structured spell IDs linked to spell library
+      {
+        "spellId": "uuid-v4"
+      }
+    ]
   },
 
   "statistics": {

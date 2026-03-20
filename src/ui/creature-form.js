@@ -4,7 +4,7 @@
 // and navigation between new/existing creature routes.
 
 import { getCreatureById, saveCreature } from '../storage/creatures.js';
-import { createEmptyCreature, deriveCreature } from '../entities/creature.js';
+import { createEmptyCreature, deriveCreature, addSpellToCreature, removeSpellFromCreature } from '../entities/creature.js';
 import { getViewRoot } from './shell.js';
 import { formatModifier, formatCR, formatXP } from '../utils/formatters.js';
 import { STANDARD_SKILLS } from '../utils/pf1e-modifiers.js';
@@ -18,6 +18,7 @@ import {
   renderSpecialAbilitiesSection,
   renderDescriptionSection,
 } from './creature-form-sections.js';
+import { openSpellPickerModal } from './spell-picker-modal.js';
 
 // Auto-save debounce delay in milliseconds
 const AUTOSAVE_DELAY = 1000;
@@ -214,6 +215,27 @@ function formClickHandler(event) {
   const removeRangedBtn = target.closest('[data-remove-ranged]');
   if (removeRangedBtn) {
     handleRemoveRangedAttack(form, parseInt(removeRangedBtn.dataset.removeRanged, 10), root);
+    return;
+  }
+
+  // Spell: remove
+  const removeSpellBtn = target.closest('[data-remove-spell]');
+  if (removeSpellBtn) {
+    handleRemoveSpell(form, removeSpellBtn.dataset.removeSpell, removeSpellBtn.dataset.spellId, root);
+    return;
+  }
+
+  // Spell: add single (quick-add)
+  const addSpellSingleBtn = target.closest('[data-add-spell-single]');
+  if (addSpellSingleBtn) {
+    handleAddSpellSingle(form, addSpellSingleBtn.dataset.addSpellSingle, root);
+    return;
+  }
+
+  // Spell: add bulk (modal)
+  const addSpellBulkBtn = target.closest('[data-add-spell-bulk]');
+  if (addSpellBulkBtn) {
+    handleAddSpellBulk(form, addSpellBulkBtn.dataset.addSpellBulk, root);
     return;
   }
 
@@ -588,6 +610,51 @@ function handleRemoveRangedAttack(form, index, root) {
 
   console.log('[handleRemoveRangedAttack] Ranged attacks after splice:', activeCreature.offence.ranged);
   refreshForm(root);
+}
+
+// ── Spell picker handlers ──────────────────────────────────
+
+function handleRemoveSpell(form, spellType, spellId, root) {
+  console.log('[handleRemoveSpell] Removing spell', spellId, 'from', spellType);
+  const updated = readFormData(form, activeCreature);
+  activeCreature = removeSpellFromCreature(updated, spellId, spellType);
+  refreshForm(root);
+}
+
+function handleAddSpellSingle(form, spellType, root) {
+  console.log('[handleAddSpellSingle] Quick-add spell for', spellType);
+  // Placeholder: In future, this could show a dropdown or inline search
+  // For now, open the modal like bulk add
+  handleAddSpellBulk(form, spellType, root);
+}
+
+function handleAddSpellBulk(form, spellType, root) {
+  console.log('[handleAddSpellBulk] Opening spell picker modal for', spellType);
+  const updated = readFormData(form, activeCreature);
+  activeCreature = updated;
+
+  const existingSpells = activeCreature.offence[
+    spellType === 'spellsKnown' ? 'spellsKnownIds' :
+    spellType === 'spellsPrepared' ? 'spellsPreparedIds' :
+    'spellLikeAbilityIds'
+  ] ?? [];
+
+  openSpellPickerModal({
+    existingSpellIds: existingSpells,
+    spellType: spellType,
+    onConfirm: (selectedSpells) => {
+      console.log('[handleAddSpellBulk] Modal confirmed with spells:', selectedSpells);
+      // Add each selected spell to the creature
+      selectedSpells.forEach(spellRef => {
+        activeCreature = addSpellToCreature(activeCreature, spellRef.spellId, spellType, spellRef.level ?? 0);
+      });
+      refreshForm(root);
+      scheduleAutosave(root);
+    },
+    onCancel: () => {
+      console.log('[handleAddSpellBulk] Modal cancelled');
+    },
+  });
 }
 
 /**

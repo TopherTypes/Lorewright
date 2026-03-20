@@ -251,6 +251,11 @@ export function createSpellcasterCardHTML(creature, imageUrl, orientation = 'lan
   const spellsKnown = offence.spellsKnown || '';
   const spellLikeAbilities = offence.spellLikeAbilities || '';
 
+  // Check if creature has linked spells (new format)
+  const hasPreparedIds = (offence.spellsPreparedIds?.length ?? 0) > 0;
+  const hasKnownIds = (offence.spellsKnownIds?.length ?? 0) > 0;
+  const hasLikeAbilityIds = (offence.spellLikeAbilityIds?.length ?? 0) > 0;
+
   // Parse spell list into levels
   const parseSpellList = (spellText) => {
     const lines = spellText.split('\n').filter(l => l.trim());
@@ -271,8 +276,21 @@ export function createSpellcasterCardHTML(creature, imageUrl, orientation = 'lan
     return levels;
   };
 
-  const preparedLevels = spellsPrepared ? parseSpellList(spellsPrepared) : {};
-  const knownLevels = spellsKnown ? parseSpellList(spellsKnown) : {};
+  // Group spell IDs by level
+  const groupSpellIdsByLevel = (spellIds = []) => {
+    const levels = {};
+    spellIds.forEach(spellRef => {
+      const level = spellRef.level ?? 0;
+      if (!levels[level]) levels[level] = [];
+      // Store spell ID reference (actual spell names will be in detail cards)
+      levels[level].push(`Spell ID: ${spellRef.spellId.substring(0, 8)}`);
+    });
+    return levels;
+  };
+
+  // Use linked spells if available, otherwise fall back to text
+  const preparedLevels = hasPreparedIds ? groupSpellIdsByLevel(offence.spellsPreparedIds) : (spellsPrepared ? parseSpellList(spellsPrepared) : {});
+  const knownLevels = hasKnownIds ? groupSpellIdsByLevel(offence.spellsKnownIds) : (spellsKnown ? parseSpellList(spellsKnown) : {});
 
   // Special abilities (first 2)
   const abilities = (creature.specialAbilities || []).slice(0, 2);
@@ -330,10 +348,16 @@ export function createSpellcasterCardHTML(creature, imageUrl, orientation = 'lan
           </div>
         ` : ''}
 
-        ${spellLikeAbilities ? `
+        ${hasLikeAbilityIds || spellLikeAbilities ? `
           <div style="margin-top: 4px;">
             <div style="font-weight: bold; font-size: 8px; margin-bottom: 2px;">Spell-Like Abilities:</div>
-            <div style="font-size: 8px; white-space: pre-wrap; line-height: 1.2;">${escapeHtml(spellLikeAbilities)}</div>
+            ${hasLikeAbilityIds ? `
+              <div style="font-size: 8px; line-height: 1.2;">
+                ${offence.spellLikeAbilityIds.map(spellRef => `<div>${escapeHtml(spellRef.spellId.substring(0, 8))}...</div>`).join('')}
+              </div>
+            ` : `
+              <div style="font-size: 8px; white-space: pre-wrap; line-height: 1.2;">${escapeHtml(spellLikeAbilities)}</div>
+            `}
           </div>
         ` : ''}
       </div>
