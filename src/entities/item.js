@@ -151,10 +151,11 @@ export function createEmptyItem() {
     armorCheckPenalty:   0,       // usually negative, e.g. -6
 
     // Identification
-    identified:              true,
-    passphrase:              '',   // auto-generated two-word, e.g. "oak-ember"
-    unidentifiedName:        '',   // blank = auto "Unidentified [Type]"
-    unidentifiedDescription: '',   // DM-authored flavour text
+    identified:                  true,
+    passphrase:                  '',   // auto-generated two-word, e.g. "oak-ember"
+    unidentifiedName:            '',   // blank = auto "Unidentified [Type]"
+    unidentifiedDescription:     '',   // DM-authored flavour text
+    includeUnidentifiedVariant:  true, // whether to generate unidentified card for this item
 
     // Card display
     imageUrl:                '',   // optional external image URL for cards
