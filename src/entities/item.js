@@ -155,5 +155,8 @@ export function createEmptyItem() {
     passphrase:              '',   // auto-generated two-word, e.g. "oak-ember"
     unidentifiedName:        '',   // blank = auto "Unidentified [Type]"
     unidentifiedDescription: '',   // DM-authored flavour text
+
+    // Card display
+    imageUrl:                '',   // optional external image URL for cards
   };
 }
