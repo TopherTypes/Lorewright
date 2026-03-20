@@ -233,18 +233,10 @@ export function renderItemDescriptionSection(item) {
 // ── Section 6: Identification ─────────────────────────────
 
 export function renderIdentificationSection(item) {
-  const isIdentified = item.identified !== false;
-  const unidentBody  = isIdentified ? 'style="display:none"' : '';
   const autoName     = `Unidentified ${item.type}`;
 
   return section('Identification', `
-    <div class="field">
-      <label>
-        <input type="checkbox" id="item-identified-toggle" ${isIdentified ? 'checked' : ''}>
-        Item is identified
-      </label>
-    </div>
-    <div id="unidentified-fields" ${unidentBody}>
+    <div id="unidentified-fields">
       ${field('Unidentified Name',
         textInput('unidentifiedName', item.unidentifiedName,
           `placeholder="${escapeHtml(autoName)}"`),

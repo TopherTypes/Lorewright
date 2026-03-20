@@ -122,26 +122,11 @@ function attachFormListeners(root) {
     activeItem = updated;
   });
 
-  // Identified toggle — show/hide unidentified fields and generate passphrase
-  const identToggle = root.querySelector('#item-identified-toggle');
-  if (identToggle) {
-    identToggle.addEventListener('change', () => {
-      const unidentFields = root.querySelector('#unidentified-fields');
-      if (identToggle.checked) {
-        activeItem.identified = true;
-        if (unidentFields) unidentFields.style.display = 'none';
-      } else {
-        activeItem.identified = false;
-        // Generate passphrase on first toggle to unidentified
-        if (!activeItem.passphrase) {
-          activeItem.passphrase = generatePassphrase();
-          const passphraseDisplay = root.querySelector('#passphrase-display');
-          if (passphraseDisplay) passphraseDisplay.value = activeItem.passphrase;
-        }
-        if (unidentFields) unidentFields.style.display = '';
-      }
-      scheduleAutosave(root);
-    });
+  // Auto-generate passphrase if not already set
+  const passphraseInput = root.querySelector('#passphrase-display');
+  if (passphraseInput && !activeItem.passphrase) {
+    activeItem.passphrase = generatePassphrase();
+    passphraseInput.value = activeItem.passphrase;
   }
 
   // Passphrase regenerate button
@@ -254,12 +239,6 @@ function readFormData(form, base) {
       });
     });
     item.spellList = spellList;
-  }
-
-  // ── Identification toggle ────────────────────────────────
-  const toggle = form.querySelector('#item-identified-toggle');
-  if (toggle) {
-    item.identified = toggle.checked;
   }
 
   return item;

@@ -92,7 +92,7 @@ function renderItemCheckbox(item) {
   const name = escapeHtml(item.name || '(Unnamed)');
   const type = escapeHtml(item.type || '');
   const status = item.identified !== false ? '✓ Identified' : '✗ Unidentified';
-  const hasUnidData = item.identified && (item.unidentifiedName || item.unidentifiedDescription);
+  const hasUnidData = item.unidentifiedName || item.unidentifiedDescription;
   const includeVariant = item.includeUnidentifiedVariant !== false; // Default to true
 
   let variantRow = '';
@@ -224,7 +224,6 @@ function countSelectedCards(items) {
   // Count unidentified variants based on per-item flag
   count += items.filter(item =>
     item.includeUnidentifiedVariant !== false && // Default to true
-    item.identified &&
     (item.unidentifiedName || item.unidentifiedDescription)
   ).length;
 
