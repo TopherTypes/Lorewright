@@ -475,12 +475,50 @@ function handleRemoveSkill(form, index, root) {
 }
 
 /**
+ * Saves the open/closed state of all collapsible sections (<details> elements).
+ * Returns a map of section title -> open state.
+ */
+function saveDetailsState(root) {
+  const state = {};
+  root.querySelectorAll('details.form-section').forEach(details => {
+    const summary = details.querySelector('summary');
+    if (summary) {
+      const title = summary.textContent.trim();
+      state[title] = details.hasAttribute('open');
+    }
+  });
+  return state;
+}
+
+/**
+ * Restores the open/closed state of collapsible sections based on saved state.
+ */
+function restoreDetailsState(root, savedState) {
+  root.querySelectorAll('details.form-section').forEach(details => {
+    const summary = details.querySelector('summary');
+    if (summary) {
+      const title = summary.textContent.trim();
+      if (savedState[title] !== undefined) {
+        if (savedState[title]) {
+          details.setAttribute('open', '');
+        } else {
+          details.removeAttribute('open');
+        }
+      }
+    }
+  });
+}
+
+/**
  * Re-renders the form page with the current activeCreature state.
  * Used after adding/removing dynamic list items.
  */
 function refreshForm(root) {
   console.log('[refreshForm] Starting form refresh with activeCreature:', activeCreature);
   const showAll = root.querySelector('#skills-toggle')?.dataset?.showAll === 'true';
+
+  // Save the open/closed state of details elements before re-rendering
+  const savedDetailsState = saveDetailsState(root);
 
   // Remove old listeners from the current form BEFORE replacing HTML
   const oldForm = root.querySelector('#creature-form');
@@ -503,6 +541,10 @@ function refreshForm(root) {
   attachFormListeners(root, activeCreature);
   updateAllOutputs(root, deriveCreature(activeCreature));
   updateSkillVisibility(root, showAll);
+
+  // Restore the open/closed state of details elements
+  restoreDetailsState(root, savedDetailsState);
+
   markDirty(root);
   console.log('[refreshForm] Form refresh complete');
 }

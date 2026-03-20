@@ -303,9 +303,51 @@ function handleRemoveSpell(form, index, root) {
   refreshForm(root);
 }
 
+/**
+ * Saves the open/closed state of all collapsible sections (<details> elements).
+ * Returns a map of section title -> open state.
+ */
+function saveDetailsState(root) {
+  const state = {};
+  root.querySelectorAll('details.form-section').forEach(details => {
+    const summary = details.querySelector('summary');
+    if (summary) {
+      const title = summary.textContent.trim();
+      state[title] = details.hasAttribute('open');
+    }
+  });
+  return state;
+}
+
+/**
+ * Restores the open/closed state of collapsible sections based on saved state.
+ */
+function restoreDetailsState(root, savedState) {
+  root.querySelectorAll('details.form-section').forEach(details => {
+    const summary = details.querySelector('summary');
+    if (summary) {
+      const title = summary.textContent.trim();
+      if (savedState[title] !== undefined) {
+        if (savedState[title]) {
+          details.setAttribute('open', '');
+        } else {
+          details.removeAttribute('open');
+        }
+      }
+    }
+  });
+}
+
 function refreshForm(root) {
+  // Save the open/closed state of details elements before re-rendering
+  const savedDetailsState = saveDetailsState(root);
+
   root.innerHTML = renderFormPage(activeItem);
   attachFormListeners(root);
+
+  // Restore the open/closed state of details elements
+  restoreDetailsState(root, savedDetailsState);
+
   markDirty(root);
 }
 
