@@ -1,7 +1,7 @@
 // Item card PDF export UI.
 // Allows users to select items and export them as poker-sized PDF cards.
 
-import { getAllItems } from '../storage/items.js';
+import { getAllItems, saveItem } from '../storage/items.js';
 import { getViewRoot } from './shell.js';
 import { generateItemCardsPDF } from '../pdf/item-card-generator.js';
 
@@ -46,7 +46,7 @@ function renderEmptyState() {
 }
 
 function renderExportPage(items) {
-  const cardCount = countSelectedCards(items, true);
+  const cardCount = countSelectedCards(items);
 
   return `
     <div class="page-header">
@@ -72,13 +72,7 @@ function renderExportPage(items) {
       </div>
 
       <div class="export-section export-options">
-        <h2>Export Options</h2>
-
-        <label class="checkbox-group">
-          <input type="checkbox" id="include-unidentified" checked>
-          <span class="checkbox-label">Include unidentified card variants</span>
-          <span class="checkbox-hint">If enabled and items have unidentified data, both identified and unidentified cards will be generated</span>
-        </label>
+        <h2>Export Summary</h2>
 
         <div class="card-count-preview">
           <strong>Cards to export:</strong>
@@ -98,6 +92,27 @@ function renderItemCheckbox(item) {
   const name = escapeHtml(item.name || '(Unnamed)');
   const type = escapeHtml(item.type || '');
   const status = item.identified !== false ? '✓ Identified' : '✗ Unidentified';
+  const hasUnidData = item.identified && (item.unidentifiedName || item.unidentifiedDescription);
+  const includeVariant = item.includeUnidentifiedVariant !== false; // Default to true
+
+  let variantRow = '';
+  if (hasUnidData) {
+    const variantChecked = includeVariant ? 'checked' : '';
+    variantRow = `
+      <div class="item-variant-row">
+        <input
+          type="checkbox"
+          class="item-variant-checkbox"
+          id="variant-${id}"
+          data-item-id="${id}"
+          ${variantChecked}
+        >
+        <label for="variant-${id}" class="variant-label">
+          <span class="variant-hint">Include unidentified variant</span>
+        </label>
+      </div>
+    `;
+  }
 
   return `
     <div class="item-checkbox-row">
@@ -113,6 +128,7 @@ function renderItemCheckbox(item) {
         <span class="item-type">${type}</span>
         <span class="item-status">${status}</span>
       </label>
+      ${variantRow}
     </div>
   `;
 }
@@ -122,9 +138,9 @@ function renderItemCheckbox(item) {
 function attachExportListeners(root, items) {
   const selectAllBtn = root.querySelector('#select-all-btn');
   const selectNoneBtn = root.querySelector('#select-none-btn');
-  const includeUnidCheckbox = root.querySelector('#include-unidentified');
   const exportBtn = root.querySelector('#export-btn');
   const checkboxes = root.querySelectorAll('.item-checkbox');
+  const variantCheckboxes = root.querySelectorAll('.item-variant-checkbox');
 
   // Select/deselect all
   selectAllBtn.addEventListener('click', () => {
@@ -137,16 +153,24 @@ function attachExportListeners(root, items) {
     updateSelectionDisplay(root, items);
   });
 
-  // Update display on checkbox change
+  // Update display on item checkbox change
   checkboxes.forEach(checkbox => {
     checkbox.addEventListener('change', () => {
       updateSelectionDisplay(root, items);
     });
   });
 
-  // Update card count when unidentified toggle changes
-  includeUnidCheckbox.addEventListener('change', () => {
-    updateSelectionDisplay(root, items);
+  // Handle per-item variant checkbox changes
+  variantCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', async () => {
+      const itemId = checkbox.dataset.itemId;
+      const item = items.find(i => i.meta.id === itemId);
+      if (item) {
+        item.includeUnidentifiedVariant = checkbox.checked;
+        await saveItem(item);
+      }
+      updateSelectionDisplay(root, items);
+    });
   });
 
   // Export button
@@ -161,13 +185,12 @@ function attachExportListeners(root, items) {
     }
 
     const selectedItems = items.filter(item => selectedIds.includes(item.meta.id));
-    const includeUnidentified = includeUnidCheckbox.checked;
 
     try {
       exportBtn.disabled = true;
       exportBtn.textContent = '⏳ Generating PDF…';
 
-      await generateItemCardsPDF(selectedItems, { includeUnidentified });
+      await generateItemCardsPDF(selectedItems);
 
       exportBtn.disabled = false;
       exportBtn.innerHTML = '<span>📥 Download PDF</span>';
@@ -184,7 +207,6 @@ function attachExportListeners(root, items) {
 function updateSelectionDisplay(root, items) {
   const checkboxes = root.querySelectorAll('.item-checkbox');
   const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-  const includeUnid = root.querySelector('#include-unidentified').checked;
 
   root.querySelector('#selected-count').textContent = selectedCount;
 
@@ -192,19 +214,19 @@ function updateSelectionDisplay(root, items) {
   const selectedItems = items.filter(item =>
     Array.from(checkboxes).some(cb => cb.checked && cb.dataset.itemId === item.meta.id)
   );
-  const cardCount = countSelectedCards(selectedItems, includeUnid);
+  const cardCount = countSelectedCards(selectedItems);
   root.querySelector('#card-count').textContent = cardCount;
 }
 
-function countSelectedCards(items, includeUnidentified) {
+function countSelectedCards(items) {
   let count = items.length; // All identified cards
 
-  if (includeUnidentified) {
-    // Count unidentified variants (only for identified items with unid data)
-    count += items.filter(item =>
-      item.identified && (item.unidentifiedName || item.unidentifiedDescription)
-    ).length;
-  }
+  // Count unidentified variants based on per-item flag
+  count += items.filter(item =>
+    item.includeUnidentifiedVariant !== false && // Default to true
+    item.identified &&
+    (item.unidentifiedName || item.unidentifiedDescription)
+  ).length;
 
   return count;
 }

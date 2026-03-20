@@ -9,21 +9,19 @@ import { getCardDimensionsMm, getCardDimensionsPx, getCardPosition, getCardPageA
 
 /**
  * Generates a PDF file with poker-sized item cards.
+ * Uses per-item includeUnidentifiedVariant flag to determine variant generation.
  * @param {object[]} items Array of item objects to include
- * @param {object} options Export options
- * @param {boolean} options.includeUnidentified Include unidentified card variants
  * @returns {Promise<void>} Resolves when PDF download is initiated
  */
-export async function generateItemCardsPDF(items, options = {}) {
-  const { includeUnidentified = true } = options;
-
+export async function generateItemCardsPDF(items) {
   if (!items || items.length === 0) {
     throw new Error('No items selected for export');
   }
 
   try {
     // Build card data: list of {html, isUnidentified}
-    const cardDataList = buildCardDataList(items, includeUnidentified);
+    // Uses per-item includeUnidentifiedVariant flag
+    const cardDataList = buildCardDataList(items);
 
     if (cardDataList.length === 0) {
       throw new Error('No cards to generate');
@@ -74,12 +72,11 @@ export async function generateItemCardsPDF(items, options = {}) {
 
 /**
  * Builds a list of card HTML and metadata.
- * Includes both identified and unidentified variants if applicable.
+ * Includes both identified and unidentified variants based on per-item flags.
  * @param {object[]} items Items to export
- * @param {boolean} includeUnidentified Whether to include unidentified variants
  * @returns {object[]} Array of {html, isUnidentified} objects
  */
-function buildCardDataList(items, includeUnidentified) {
+function buildCardDataList(items) {
   const cards = [];
 
   for (const item of items) {
@@ -91,7 +88,8 @@ function buildCardDataList(items, includeUnidentified) {
     });
 
     // Unidentified card (if applicable)
-    if (includeUnidentified && item.identified && (item.unidentifiedName || item.unidentifiedDescription)) {
+    // Uses per-item flag: item.includeUnidentifiedVariant (defaults to true)
+    if (item.includeUnidentifiedVariant !== false && item.identified && (item.unidentifiedName || item.unidentifiedDescription)) {
       const unidentifiedHtml = createUnidentifiedCardHTML(item);
       cards.push({
         html: unidentifiedHtml,
