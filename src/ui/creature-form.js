@@ -454,6 +454,18 @@ function handleRemoveSkill(form, index, root) {
 function refreshForm(root) {
   console.log('[refreshForm] Starting form refresh with activeCreature:', activeCreature);
   const showAll = root.querySelector('#skills-toggle')?.dataset?.showAll === 'true';
+
+  // Remove old listeners from the current form BEFORE replacing HTML
+  const oldForm = root.querySelector('#creature-form');
+  if (oldForm) {
+    if (oldForm._inputHandler) {
+      oldForm.removeEventListener('input', oldForm._inputHandler);
+    }
+    if (oldForm._clickHandler) {
+      oldForm.removeEventListener('click', oldForm._clickHandler);
+    }
+  }
+
   root.innerHTML = renderFormPage(activeCreature);
   attachFormListeners(root, activeCreature);
   updateAllOutputs(root, deriveCreature(activeCreature));
