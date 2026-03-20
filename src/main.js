@@ -11,6 +11,7 @@ import { showItemForm } from './ui/item-form.js';
 import { showItemCardExport } from './ui/item-card-export.js';
 import { showSpellList } from './ui/spell-list.js';
 import { showSpellForm } from './ui/spell-form.js';
+import { showSpellCardExport } from './ui/spell-card-export.js';
 import { showSettings } from './ui/settings.js';
 
 // Render the persistent nav and view container before dispatching any routes
@@ -30,6 +31,7 @@ addRoute('#/export-items',  () => showItemCardExport());
 addRoute('#/spells',        () => showSpellList());
 addRoute('#/spell/new',     () => showSpellForm(null));
 addRoute('#/spell/:id',     ({ id }) => showSpellForm(id));
+addRoute('#/export-spells', () => showSpellCardExport());
 addRoute('#/settings',      () => showSettings());
 
 // Start listening to hash changes and dispatch the initial route
