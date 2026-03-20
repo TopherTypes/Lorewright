@@ -73,7 +73,6 @@ function renderFormPage(creature) {
       <h1 class="page-title">${escapeHtml(title)}${escapeHtml(crText)}</h1>
       <div class="page-actions">
         <span class="save-indicator" id="save-indicator"></span>
-        <button class="btn btn-secondary" id="btn-print" ${creature.name ? '' : 'disabled'}>Print Card</button>
         <button class="btn btn-primary" id="btn-save">Save</button>
       </div>
     </div>
@@ -166,13 +165,6 @@ function attachFormListeners(root, creature) {
   // Save button
   root.querySelector('#btn-save')?.addEventListener('click', () => {
     saveNow(root);
-  });
-
-  // Print button
-  root.querySelector('#btn-print')?.addEventListener('click', () => {
-    if (activeCreature?.meta?.id) {
-      window.location.hash = `#/creature/${activeCreature.meta.id}/print`;
-    }
   });
 }
 
@@ -441,9 +433,6 @@ async function saveNow(root) {
   const expectedHash = `#/creature/${activeCreature.meta.id}`;
   if (currentHash !== expectedHash) {
     history.replaceState(null, '', expectedHash);
-    // Also enable the print button now that the creature has been saved
-    const printBtn = root?.querySelector('#btn-print');
-    if (printBtn) printBtn.disabled = false;
   }
 
   const indicator = root?.querySelector('#save-indicator');

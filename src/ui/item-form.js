@@ -67,7 +67,6 @@ function renderFormPage(item) {
       <div class="page-actions">
         <a href="#/items" class="btn btn-secondary">← All Items</a>
         <span class="save-indicator" id="save-indicator"></span>
-        <button class="btn btn-secondary" id="btn-print" ${item.name ? '' : 'disabled'}>Print Card</button>
         <button class="btn btn-primary" id="btn-save">Save</button>
       </div>
     </div>
@@ -95,8 +94,6 @@ function attachFormListeners(root) {
     if (event.target.dataset.field === 'name') {
       const titleEl = root.querySelector('#item-form-title');
       if (titleEl) titleEl.textContent = event.target.value || 'New Item';
-      const printBtn = root.querySelector('#btn-print');
-      if (printBtn) printBtn.disabled = !event.target.value;
     }
 
     // Rebuild type-specific section when type changes
@@ -184,13 +181,6 @@ function attachFormListeners(root) {
   // Save button
   root.querySelector('#btn-save')?.addEventListener('click', () => {
     saveNow(root);
-  });
-
-  // Print button
-  root.querySelector('#btn-print')?.addEventListener('click', () => {
-    if (activeItem?.meta?.id) {
-      window.location.hash = `#/item/${activeItem.meta.id}/print`;
-    }
   });
 }
 
@@ -385,8 +375,6 @@ async function saveNow(root) {
   const expectedHash = `#/item/${activeItem.meta.id}`;
   if (currentHash !== expectedHash) {
     history.replaceState(null, '', expectedHash);
-    const printBtn = root?.querySelector('#btn-print');
-    if (printBtn) printBtn.disabled = false;
   }
 
   const indicator = root?.querySelector('#save-indicator');

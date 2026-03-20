@@ -5,10 +5,8 @@ import { renderShell } from './ui/shell.js';
 import { addRoute, startRouter } from './ui/router.js';
 import { showCreatureList } from './ui/creature-list.js';
 import { showCreatureForm } from './ui/creature-form.js';
-import { showPrintPreview } from './print/creature-card.js';
 import { showItemList } from './ui/item-list.js';
 import { showItemForm } from './ui/item-form.js';
-import { showItemPrint } from './print/item-card.js';
 import { showSettings } from './ui/settings.js';
 
 // Render the persistent nav and view container before dispatching any routes
@@ -17,15 +15,13 @@ renderShell();
 // Register routes — more-specific patterns must come before general ones.
 // '#/creature/new' must be registered before '#/creature/:id' so the
 // literal string "new" is not parsed as an ID.
-addRoute('#/',                   () => showCreatureList());
-addRoute('#/creature/new',       () => showCreatureForm(null));
-addRoute('#/creature/:id',       ({ id }) => showCreatureForm(id));
-addRoute('#/creature/:id/print', ({ id }) => showPrintPreview(id));
-addRoute('#/items',              () => showItemList());
-addRoute('#/item/new',           () => showItemForm(null));
-addRoute('#/item/:id/print',     ({ id }) => showItemPrint(id));
-addRoute('#/item/:id',           ({ id }) => showItemForm(id));
-addRoute('#/settings',           () => showSettings());
+addRoute('#/',           () => showCreatureList());
+addRoute('#/creature/new', () => showCreatureForm(null));
+addRoute('#/creature/:id', ({ id }) => showCreatureForm(id));
+addRoute('#/items',      () => showItemList());
+addRoute('#/item/new',   () => showItemForm(null));
+addRoute('#/item/:id',   ({ id }) => showItemForm(id));
+addRoute('#/settings',   () => showSettings());
 
 // Start listening to hash changes and dispatch the initial route
 startRouter();
