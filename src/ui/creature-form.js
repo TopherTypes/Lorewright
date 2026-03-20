@@ -532,14 +532,29 @@ function scheduleAutosave(root) {
 }
 
 async function saveNow(root) {
-  if (!activeCreature) return;
+  if (!activeCreature) {
+    console.warn('[saveNow] No active creature set');
+    return;
+  }
 
   clearTimeout(autosaveTimer);
+
+  // Read latest form data before saving to capture any unsaved changes
+  const form = root?.querySelector('#creature-form');
+  if (form) {
+    const updated = readFormData(form, activeCreature);
+    activeCreature = updated;
+    console.log('[saveNow] Form data read and creature updated');
+  }
+
   activeCreature.meta.updatedAt = new Date().toISOString();
 
   try {
+    console.log('[saveNow] Saving creature:', activeCreature.meta.id);
     await saveCreature(activeCreature);
+    console.log('[saveNow] Save successful');
   } catch (err) {
+    console.error('[saveNow] Save failed:', err);
     const indicator = root?.querySelector('#save-indicator');
     if (indicator) {
       indicator.textContent = `Save failed: ${err.message}`;
@@ -568,6 +583,8 @@ async function saveNow(root) {
         indicator.className   = 'save-indicator';
       }
     }, 2000);
+  } else {
+    console.warn('[saveNow] Save indicator element not found');
   }
 }
 
