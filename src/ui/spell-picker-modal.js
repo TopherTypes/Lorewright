@@ -66,7 +66,26 @@ export async function openSpellPickerModal(options = {}) {
   modalContainer.innerHTML = modalHTML;
 
   // Debug: verify modal was inserted
+  const spellList = modalContainer.querySelector('.spell-picker-list');
   const listContent = modalContainer.querySelector('.spell-picker-list-content');
+
+  if (spellList) {
+    const listStyles = window.getComputedStyle(spellList);
+    console.log('[spell-picker] .spell-picker-list computed styles:', {
+      display: listStyles.display,
+      visibility: listStyles.visibility,
+      height: listStyles.height,
+      maxHeight: listStyles.maxHeight,
+      opacity: listStyles.opacity,
+      background: listStyles.background,
+      backgroundColor: listStyles.backgroundColor,
+      overflow: listStyles.overflow,
+      overflowY: listStyles.overflowY
+    });
+  } else {
+    console.error('[spell-picker] ERROR: Could not find .spell-picker-list!');
+  }
+
   if (listContent) {
     console.log('[spell-picker] Modal inserted. List content element found. HTML length:', listContent.innerHTML.length, 'Children:', listContent.children.length);
     const styles = window.getComputedStyle(listContent);
