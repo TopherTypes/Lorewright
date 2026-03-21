@@ -5,7 +5,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { createSpellCardHTML } from './spell-card-templates.js';
 import { getSpellCardStyles } from './spell-card-styles.js';
-import { getCardDimensionsMm, getCardDimensionsPx, getCardPosition, getCardPageAndPosition } from './card-layout.js';
+import { getCardDimensionsMm, getCardDimensionsPx, getCardPositionMm, getCardPageAndPosition } from './spell-card-layout.js';
 
 /**
  * Generates a PDF file with spell cards, with automatic overflow handling.
@@ -50,7 +50,7 @@ export async function generateSpellCardsPDF(spells) {
       const canvas = await renderCardToCanvas(html);
 
       // Add canvas image to PDF at correct position
-      const { xMm, yMm } = getCardPosition(indexOnPage);
+      const { xMm, yMm } = getCardPositionMm(indexOnPage);
       const { widthMm, heightMm } = getCardDimensionsMm();
 
       const imgData = canvas.toDataURL('image/png');
