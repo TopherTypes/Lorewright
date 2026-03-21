@@ -7,6 +7,7 @@ import { STANDARD_SKILLS } from '../utils/pf1e-modifiers.js';
 import { formatModifier } from '../utils/formatters.js';
 import { getDamageTypeOptions } from '../constants/damage-types.js';
 import { hasLinkedSpells } from '../entities/creature.js';
+import { getSpellById } from '../storage/spells.js';
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -305,7 +306,17 @@ function renderSpellPickerList(spells = [], spellType = 'spellsKnown') {
 
 // ── Section 4: Offence ────────────────────────────────────
 
-export function renderOffenceSection(c) {
+// Helper function to resolve a spell name from the database, with fallback to cached name
+async function resolveSpellName(spellRef) {
+  try {
+    const spell = await getSpellById(spellRef.spellId);
+    return spell?.name || spellRef.spellName || '(Unknown)';
+  } catch (err) {
+    return spellRef.spellName || '(Unknown)';
+  }
+}
+
+export async function renderOffenceSection(c) {
   const speed = c.offence.speed;
   const spellSlots = c.offence.spellSlots ?? {};
   const spellUsage = c.offence.spellUsage ?? {};
@@ -342,11 +353,16 @@ export function renderOffenceSection(c) {
   const spellsPreparedIds = c.offence.spellsPreparedIds ?? [];
   let preparedSlotsContent = '';
   if (spellsPreparedIds.length > 0) {
+    // Resolve all spell names in parallel
+    const resolvedPreparedNames = await Promise.all(
+      spellsPreparedIds.map(spellRef => resolveSpellName(spellRef))
+    );
+
     preparedSlotsContent = `
       <div class="prepared-spell-slots">
-        ${spellsPreparedIds.map(spellRef => {
+        ${spellsPreparedIds.map((spellRef, index) => {
           const spellId = spellRef.spellId;
-          const spellName = spellRef.spellName || '(Unknown)';
+          const spellName = resolvedPreparedNames[index];
           const slots = spellSlots.spellsPreparedSlots?.[spellId] ?? 1;
           const used = spellUsage.spellsPreparedUsed?.[spellId] ?? 0;
           return `
@@ -365,11 +381,16 @@ export function renderOffenceSection(c) {
   const spellLikeAbilityIds = c.offence.spellLikeAbilityIds ?? [];
   let slaUsesContent = '';
   if (spellLikeAbilityIds.length > 0) {
+    // Resolve all spell names in parallel
+    const resolvedSLANames = await Promise.all(
+      spellLikeAbilityIds.map(spellRef => resolveSpellName(spellRef))
+    );
+
     slaUsesContent = `
       <div class="sla-uses-container">
-        ${spellLikeAbilityIds.map(spellRef => {
+        ${spellLikeAbilityIds.map((spellRef, index) => {
           const spellId = spellRef.spellId;
-          const spellName = spellRef.spellName || '(Unknown)';
+          const spellName = resolvedSLANames[index];
           const usesPerDay = spellSlots.spellLikeAbilityUsesPerDay?.[spellId] ?? 1;
           const used = spellUsage.spellLikeAbilityUsed?.[spellId] ?? 0;
           return `
