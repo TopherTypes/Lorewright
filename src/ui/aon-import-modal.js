@@ -421,9 +421,9 @@ function attachAoNModalListeners() {
           const spell = mapAoNToLorewright(aonData);
 
           // Validate
-          const validation = validateSpell(spell);
-          if (!validation.valid) {
-            throw new Error(validation.errors.join(', '));
+          const spellValidation = validateSpell(spell);
+          if (!spellValidation.valid) {
+            throw new Error(spellValidation.errors.join(', '));
           }
 
           // Show preview
