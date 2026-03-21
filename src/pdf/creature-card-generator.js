@@ -8,6 +8,7 @@ import { createSpellCardHTML } from './spell-card-templates.js';
 import { getCreatureCardStyles } from './creature-card-styles.js';
 import { getSpellCardStyles } from './spell-card-styles.js';
 import { getCreatureCardDimensions, getCreatureCardPosition, getCreatureCardPageAndPosition } from './creature-card-layout.js';
+import { getCardDimensionsMm, getCardDimensionsPx, getCardPositionMm, getCardPageAndPosition } from './spell-card-layout.js';
 import { getSpellById } from '../storage/spells.js';
 
 /**
@@ -67,17 +68,22 @@ export async function generateCreatureCardsPDF(cardConfigs) {
 
       // After creature card: generate spell detail cards if this is a spellcaster with linked spells
       if (config.variant === 'spellcaster' && hasLinkedSpells(config.creature)) {
-        const spellCards = await generateSpellDetailsForCreature(config.creature);
+        const spellCardHtmls = await generateSpellDetailsForCreature(config.creature);
 
-        for (const spellCardHtml of spellCards) {
-          // Add new page for spell card
-          pdf.addPage();
+        if (spellCardHtmls.length > 0) {
+          // Render spell cards in grid layout and add pages to PDF
+          const spellCardPages = await renderSpellDetailCardsToPages(spellCardHtmls);
 
-          // Render spell card to canvas
-          const spellCanvas = await renderSpellDetailCardToCanvas(spellCardHtml);
+          for (const pageData of spellCardPages) {
+            pdf.addPage();
 
-          // Add to PDF full page
-          pdf.addImage(spellCanvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
+            // Add each card on the page
+            for (const cardInfo of pageData) {
+              const { canvas, xMm, yMm, widthMm, heightMm } = cardInfo;
+              const imgData = canvas.toDataURL('image/png');
+              pdf.addImage(imgData, 'PNG', xMm, yMm, widthMm, heightMm);
+            }
+          }
         }
       }
     }
@@ -210,20 +216,57 @@ async function generateSpellDetailsForCreature(creature) {
 }
 
 /**
- * Renders spell detail card HTML to canvas for PDF inclusion.
- * @param {string} html HTML string for the spell card
- * @returns {Promise<Canvas>} Canvas element with rendered card
+ * Renders spell detail cards in grid layout across multiple pages.
+ * Mirrors the grid layout used by standalone spell exports.
+ * @param {string[]} spellCardHtmls Array of HTML strings for spell cards
+ * @returns {Promise<Array>} Array of pages, each containing array of card data {canvas, xMm, yMm, widthMm, heightMm}
  */
-async function renderSpellDetailCardToCanvas(html) {
+async function renderSpellDetailCardsToPages(spellCardHtmls) {
+  const { widthPx, heightPx } = getCardDimensionsPx();
+  const { widthMm, heightMm } = getCardDimensionsMm();
+  const pages = [];
+
+  // Group cards by page (6 cards per page)
+  for (let i = 0; i < spellCardHtmls.length; i++) {
+    const { pageNum, indexOnPage } = getCardPageAndPosition(i);
+
+    // Create new page if needed
+    if (indexOnPage === 0) {
+      pages[pageNum] = [];
+    }
+
+    // Render individual card to canvas
+    const canvas = await renderSpellCardToCanvas(spellCardHtmls[i], widthPx, heightPx);
+
+    // Get position on page
+    const { xMm, yMm } = getCardPositionMm(indexOnPage);
+
+    pages[pageNum].push({
+      canvas,
+      xMm,
+      yMm,
+      widthMm,
+      heightMm,
+    });
+  }
+
+  return pages;
+}
+
+/**
+ * Renders a single spell card HTML to canvas using html2canvas.
+ * @param {string} html HTML string of the card
+ * @param {number} widthPx Card width in pixels
+ * @param {number} heightPx Card height in pixels
+ * @returns {Promise<Canvas>} Canvas element
+ */
+async function renderSpellCardToCanvas(html, widthPx, heightPx) {
   const container = document.createElement('div');
   container.style.position = 'absolute';
   container.style.left = '-9999px';
   container.style.top = '-9999px';
-  container.style.width = '210mm';
-  container.style.height = '297mm';
-  container.style.padding = '15mm';
-  container.style.boxSizing = 'border-box';
-  container.style.backgroundColor = '#f5f1e6';
+  container.style.width = `${widthPx}px`;
+  container.style.height = `${heightPx}px`;
 
   // Add styles
   const style = document.createElement('style');
@@ -238,8 +281,8 @@ async function renderSpellDetailCardToCanvas(html) {
 
   try {
     const canvas = await html2canvas(container, {
-      width: 1650, // 210mm at 96dpi
-      height: 2340, // 297mm at 96dpi
+      width: widthPx,
+      height: heightPx,
       scale: 2,
       backgroundColor: '#f5f1e6',
       logging: false,
