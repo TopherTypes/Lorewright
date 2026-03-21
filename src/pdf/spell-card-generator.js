@@ -126,8 +126,10 @@ async function generateSpellCards(spell) {
             return;
           }
 
-          // Add 10px threshold to account for rounding and sub-pixel rendering
-          const overflowThreshold = 10;
+          // Add large threshold (100px) to account for layout differences between
+          // the temporary container and html2canvas rendering. Only split if there's
+          // actually substantial overflow, not just pixel-level misalignment.
+          const overflowThreshold = 100;
           const hasOverflow = descriptionElement.scrollHeight > (descriptionElement.clientHeight + overflowThreshold);
           resolve(hasOverflow);
         } catch (err) {
