@@ -115,16 +115,26 @@ async function generateSpellCards(spell) {
 
   // Defer layout checking to after stylesheets have loaded
   const checkOverflow = () => new Promise((resolve) => {
+    // Use a small delay to ensure all styles are computed
     requestAnimationFrame(() => {
-      try {
-        // Check if content overflows
-        const descriptionElement = container.querySelector('.card-description');
-        const hasOverflow = descriptionElement && descriptionElement.scrollHeight > descriptionElement.clientHeight;
-        resolve(hasOverflow);
-      } catch (err) {
-        console.error('Error checking overflow:', err);
-        resolve(false);  // Default to no overflow on error
-      }
+      setTimeout(() => {
+        try {
+          // Check if content overflows with a small threshold for rounding errors
+          const descriptionElement = container.querySelector('.card-description');
+          if (!descriptionElement) {
+            resolve(false);
+            return;
+          }
+
+          // Add 10px threshold to account for rounding and sub-pixel rendering
+          const overflowThreshold = 10;
+          const hasOverflow = descriptionElement.scrollHeight > (descriptionElement.clientHeight + overflowThreshold);
+          resolve(hasOverflow);
+        } catch (err) {
+          console.error('Error checking overflow:', err);
+          resolve(false);  // Default to no overflow on error
+        }
+      }, 0);
     });
   });
 

@@ -6,7 +6,7 @@ const INCH_TO_MM = 25.4; // Conversion factor for jsPDF
 
 // ── Spell Card Dimensions (Tarot-style) ──────────────────────────
 const SPELL_CARD_WIDTH_IN = 2.75;
-const SPELL_CARD_HEIGHT_IN = 4.75;
+const SPELL_CARD_HEIGHT_IN = 4.5;
 
 // ── Page Layout (Letter: 8.5" × 11") ────────────────────────────
 const PAGE_WIDTH_IN = 8.5;
@@ -18,7 +18,7 @@ const USABLE_HEIGHT_IN = PAGE_HEIGHT_IN - (2 * MARGIN_IN);
 
 // ── Grid Layout ──────────────────────────────────────────────────
 const CARDS_PER_ROW = 2;
-const CARDS_PER_COL = 3;
+const CARDS_PER_COL = 2;
 const CARDS_PER_PAGE = CARDS_PER_ROW * CARDS_PER_COL;
 
 /**
