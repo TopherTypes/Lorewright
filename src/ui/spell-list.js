@@ -3,7 +3,7 @@
 
 import { getAllSpells, deleteSpell, saveSpell } from '../storage/spells.js';
 import { getViewRoot } from './shell.js';
-import { openAoNImportModal } from './aon-import-modal.js';
+import { openTextImportModal } from './text-import-modal.js';
 
 /**
  * Renders the spell list into the view root.
@@ -54,8 +54,8 @@ function renderListPage(spells) {
     <div class="page-header">
       <h1 class="page-title">Spell Library</h1>
       <div class="page-actions">
-        <button id="btn-import-aon" class="btn btn-secondary" title="Import from Archive of Nethys">
-          📋 Import from URL
+        <button id="btn-import-text" class="btn btn-secondary" title="Import spell from text">
+          📝 Import from Text
         </button>
         <a href="#/spell/new" class="btn btn-primary">+ New Spell</a>
       </div>
@@ -115,10 +115,10 @@ function attachListListeners(root) {
   let pendingDeleteId = null;
 
   // Handle import button click
-  const importBtn = root.querySelector('#btn-import-aon');
+  const importBtn = root.querySelector('#btn-import-text');
   if (importBtn) {
     importBtn.addEventListener('click', () => {
-      openAoNImportModal(
+      openTextImportModal(
         async (spell) => {
           // User confirmed import
           try {
