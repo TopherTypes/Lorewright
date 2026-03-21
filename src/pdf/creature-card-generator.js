@@ -4,8 +4,9 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { createBasicCreatureCardHTML, createComplexCreatureCardHTML, createSpellcasterCardHTML } from './creature-card-templates.js';
-import { createSpellDetailCardHTML } from './spell-detail-card-generator.js';
+import { createSpellCardHTML } from './spell-card-templates.js';
 import { getCreatureCardStyles } from './creature-card-styles.js';
+import { getSpellCardStyles } from './spell-card-styles.js';
 import { getCreatureCardDimensions, getCreatureCardPosition, getCreatureCardPageAndPosition } from './creature-card-layout.js';
 import { getSpellById } from '../storage/spells.js';
 
@@ -192,7 +193,7 @@ async function generateSpellDetailsForCreature(creature) {
       try {
         const spell = await getSpellById(spellRef.spellId);
         if (spell) {
-          spellCards.push(createSpellDetailCardHTML(spell));
+          spellCards.push(createSpellCardHTML(spell));
         }
       } catch (err) {
         console.warn(`Failed to fetch spell ${spellRef.spellId}:`, err);
@@ -226,7 +227,7 @@ async function renderSpellDetailCardToCanvas(html) {
 
   // Add styles
   const style = document.createElement('style');
-  style.textContent = getCreatureCardStyles();
+  style.textContent = getSpellCardStyles();
   container.appendChild(style);
 
   // Add card HTML
