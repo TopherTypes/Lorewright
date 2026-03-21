@@ -307,6 +307,83 @@ function renderSpellPickerList(spells = [], spellType = 'spellsKnown') {
 
 export function renderOffenceSection(c) {
   const speed = c.offence.speed;
+  const spellSlots = c.offence.spellSlots ?? {};
+  const spellUsage = c.offence.spellUsage ?? {};
+
+  // Render spell slots UI for spells known
+  const spellsKnownIds = c.offence.spellsKnownIds ?? [];
+  const hasSpellsKnown = spellsKnownIds.length > 0;
+  let spellSlotsContent = '';
+  if (hasSpellsKnown) {
+    spellSlotsContent = `
+      <div class="spell-slots-container">
+        <div class="form-grid-2">
+          ${field('Caster Level', numInput('offence.spellSlots.casterLevel', spellSlots.casterLevel ?? 1, 'min="1" max="20"'))}
+        </div>
+        <div class="spell-slots-grid">
+          ${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => {
+            const available = spellSlots.spellsKnownSlots?.[level] ?? 0;
+            const used = spellUsage.spellsKnownUsed?.[level] ?? 0;
+            const levelLabel = level === 0 ? 'Cantrips' : `Lvl ${level}`;
+            return `
+              <div class="spell-slot-row">
+                <label>${levelLabel}</label>
+                <input type="number" data-field="offence.spellSlots.spellsKnownSlots.${level}" value="${available}" min="0" max="9">
+                <span class="slot-usage">Used: ${used}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // Render spell slots for prepared spells
+  const spellsPreparedIds = c.offence.spellsPreparedIds ?? [];
+  let preparedSlotsContent = '';
+  if (spellsPreparedIds.length > 0) {
+    preparedSlotsContent = `
+      <div class="prepared-spell-slots">
+        ${spellsPreparedIds.map(spellRef => {
+          const spellId = spellRef.spellId;
+          const spellName = spellRef.spellName || '(Unknown)';
+          const slots = spellSlots.spellsPreparedSlots?.[spellId] ?? 1;
+          const used = spellUsage.spellsPreparedUsed?.[spellId] ?? 0;
+          return `
+            <div class="prepared-spell-slot-row">
+              <label>${escapeHtml(spellName)}</label>
+              <input type="number" data-field="offence.spellSlots.spellsPreparedSlots.${escapeHtml(spellId)}" value="${slots}" min="1" max="9">
+              <span class="slot-usage">Used: ${used}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  // Render spell-like ability uses per day
+  const spellLikeAbilityIds = c.offence.spellLikeAbilityIds ?? [];
+  let slaUsesContent = '';
+  if (spellLikeAbilityIds.length > 0) {
+    slaUsesContent = `
+      <div class="sla-uses-container">
+        ${spellLikeAbilityIds.map(spellRef => {
+          const spellId = spellRef.spellId;
+          const spellName = spellRef.spellName || '(Unknown)';
+          const usesPerDay = spellSlots.spellLikeAbilityUsesPerDay?.[spellId] ?? 1;
+          const used = spellUsage.spellLikeAbilityUsed?.[spellId] ?? 0;
+          return `
+            <div class="sla-uses-row">
+              <label>${escapeHtml(spellName)}</label>
+              <input type="number" data-field="offence.spellSlots.spellLikeAbilityUsesPerDay.${escapeHtml(spellId)}" value="${usesPerDay}" min="1" max="9">
+              <span class="slot-usage">Used: ${used}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
   return section('Offence', `
     <div class="form-grid-3">
       ${field('Land (ft.)',  numInput('offence.speed.land',   speed.land))}
@@ -324,8 +401,11 @@ export function renderOffenceSection(c) {
       ${field('Reach', textInput('offence.reach', c.offence.reach, 'placeholder="e.g. 5 ft."'))}
     </div>
     ${field('Spells Known',         renderSpellPickerList(c.offence.spellsKnownIds ?? [], 'spellsKnown'))}
+    ${hasSpellsKnown ? field('Spell Slots', spellSlotsContent) : ''}
     ${field('Spells Prepared',      renderSpellPickerList(c.offence.spellsPreparedIds ?? [], 'spellsPrepared'))}
+    ${spellsPreparedIds.length > 0 ? field('Prepared Spell Slots', preparedSlotsContent) : ''}
     ${field('Spell-Like Abilities', renderSpellPickerList(c.offence.spellLikeAbilityIds ?? [], 'spellLikeAbilities'))}
+    ${spellLikeAbilityIds.length > 0 ? field('SLA Uses Per Day', slaUsesContent) : ''}
   `);
 }
 

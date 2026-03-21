@@ -242,7 +242,8 @@ export function createSpellcasterCardHTML(creature, imageUrl, orientation = 'lan
   const primaryRanged = rangedAttacks.length > 0 ? rangedAttacks[0] : null;
 
   // Spellcasting
-  const clevel = offence.clevel || stats.clevel || 1;
+  const spellSlots = offence.spellSlots || {};
+  const clevel = spellSlots.casterLevel || offence.clevel || stats.clevel || 1;
   const spellSaveDc = stats.spellSaveDc || 10 + (stats.intMod || stats.wisMod || 0);
   const concentration = stats.concentration || 0;
 
@@ -332,20 +333,41 @@ export function createSpellcasterCardHTML(creature, imageUrl, orientation = 'lan
         ${Object.keys(preparedLevels).length > 0 ? `
           <div style="margin-top: 4px;">
             <div style="font-weight: bold; font-size: 8px; margin-bottom: 2px;">Spells Prepared:</div>
-            ${Object.keys(preparedLevels).sort((a, b) => parseInt(a) - parseInt(b)).map(level => `
-              <div class="spell-level">${level === '0' ? 'Cantrips' : `${level}`}:</div>
-              ${preparedLevels[level].map(spell => `<div class="spell-item">${spell}</div>`).join('')}
-            `).join('')}
+            ${hasPreparedIds ?
+              offence.spellsPreparedIds.map(spellRef => {
+                const spellId = spellRef.spellId;
+                const slots = spellSlots.spellsPreparedSlots?.[spellId] ?? 1;
+                const slotBoxes = Array(slots).fill('☐').join('');
+                return `<div class="spell-item">${escapeHtml(spellRef.spellName || 'Unknown')} ${slotBoxes}</div>`;
+              }).join('')
+            :
+              Object.keys(preparedLevels).sort((a, b) => parseInt(a) - parseInt(b)).map(level => `
+                <div class="spell-level">${level === '0' ? 'Cantrips' : `${level}`}:</div>
+                ${preparedLevels[level].map(spell => `<div class="spell-item">${spell}</div>`).join('')}
+              `).join('')
+            }
           </div>
         ` : ''}
 
         ${Object.keys(knownLevels).length > 0 ? `
           <div style="margin-top: 4px;">
             <div style="font-weight: bold; font-size: 8px; margin-bottom: 2px;">Spells Known:</div>
-            ${Object.keys(knownLevels).sort((a, b) => parseInt(a) - parseInt(b)).map(level => `
-              <div class="spell-level">${level === '0' ? 'Cantrips' : `${level}`}:</div>
-              ${knownLevels[level].map(spell => `<div class="spell-item">${spell}</div>`).join('')}
-            `).join('')}
+            ${hasKnownIds ? `
+              ${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].filter(level => {
+                const hasSpellsAtLevel = (offence.spellsKnownIds || []).some(s => s.level === level);
+                return hasSpellsAtLevel;
+              }).map(level => {
+                const slots = spellSlots.spellsKnownSlots?.[level] ?? 0;
+                const slotBoxes = Array(slots).fill('☐').join('');
+                const levelLabel = level === 0 ? 'Cantrips' : `Lvl ${level}`;
+                return `<div class="spell-item">${levelLabel} ${slotBoxes}</div>`;
+              }).join('')}
+            ` : `
+              ${Object.keys(knownLevels).sort((a, b) => parseInt(a) - parseInt(b)).map(level => `
+                <div class="spell-level">${level === '0' ? 'Cantrips' : `${level}`}:</div>
+                ${knownLevels[level].map(spell => `<div class="spell-item">${spell}</div>`).join('')}
+              `).join('')}
+            `}
           </div>
         ` : ''}
 
@@ -354,7 +376,12 @@ export function createSpellcasterCardHTML(creature, imageUrl, orientation = 'lan
             <div style="font-weight: bold; font-size: 8px; margin-bottom: 2px;">Spell-Like Abilities:</div>
             ${hasLikeAbilityIds ? `
               <div style="font-size: 8px; line-height: 1.2;">
-                ${offence.spellLikeAbilityIds.map(spellRef => `<div>${escapeHtml(spellRef.spellId.substring(0, 8))}...</div>`).join('')}
+                ${offence.spellLikeAbilityIds.map(spellRef => {
+                  const spellId = spellRef.spellId;
+                  const usesPerDay = spellSlots.spellLikeAbilityUsesPerDay?.[spellId] ?? 1;
+                  const slotBoxes = Array(usesPerDay).fill('☐').join('');
+                  return `<div>${escapeHtml(spellRef.spellName || 'Unknown')} ${slotBoxes}</div>`;
+                }).join('')}
               </div>
             ` : `
               <div style="font-size: 8px; white-space: pre-wrap; line-height: 1.2;">${escapeHtml(spellLikeAbilities)}</div>
