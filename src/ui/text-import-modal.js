@@ -481,9 +481,11 @@ function attachTextModalListeners() {
 
     if (confirmBtn) {
       confirmBtn.addEventListener('click', () => {
+        const spell = currentModalState.parsedSpell;
+        const onConfirm = currentModalState.onConfirm;
         closeModal();
-        if (currentModalState.onConfirm) {
-          currentModalState.onConfirm(currentModalState.parsedSpell);
+        if (onConfirm) {
+          onConfirm(spell);
         }
       });
     }

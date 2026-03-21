@@ -477,13 +477,18 @@ function attachAoNModalListeners() {
     if (confirmBtn) {
       confirmBtn.addEventListener('click', () => {
         const spell = currentModalState.parsedSpell;
+        const onConfirm = currentModalState.onConfirm;
         closeModal();
-        currentModalState.onConfirm(spell);
+        onConfirm(spell);
       });
     }
 
     if (cancelBtn) {
-      cancelBtn.addEventListener('click', closeModal);
+      cancelBtn.addEventListener('click', () => {
+        const onCancel = currentModalState.onCancel;
+        closeModal();
+        if (onCancel) onCancel();
+      });
     }
   }
 }
