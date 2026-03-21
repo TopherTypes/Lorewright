@@ -115,25 +115,28 @@ export async function parseSpellHTML(htmlString) {
       }
     }
 
-    // Extract description/full text
-    // Try multiple selectors for description content
-    let descriptionElement =
-      doc.querySelector('div.description') ||
-      doc.querySelector('div.body') ||
-      doc.querySelector('article') ||
-      doc.querySelector('main');
+    // Extract description/full text - only content after "Description" heading
+    const bodyText = doc.body.textContent;
+    const descriptionIndex = bodyText.toLowerCase().indexOf('description');
 
-    if (descriptionElement) {
-      // Get all paragraphs and combine them
-      const paragraphs = descriptionElement.querySelectorAll('p');
-      if (paragraphs.length > 0) {
-        spellData.description = Array.from(paragraphs)
-          .map((p) => p.textContent.trim())
-          .filter((text) => text.length > 0)
-          .join('\n');
-      } else {
-        spellData.description = descriptionElement.textContent.trim();
+    if (descriptionIndex !== -1) {
+      // Get everything after the "Description" word/heading
+      let descriptionText = bodyText.substring(descriptionIndex + 'description'.length);
+
+      // Remove common section headers that may follow
+      // to avoid including content from other sections
+      const nextSectionMatch = descriptionText.match(/(?:See Also|External Links|References|Special|Revisions|Advanced)/i);
+      if (nextSectionMatch) {
+        descriptionText = descriptionText.substring(0, nextSectionMatch.index);
       }
+
+      // Clean up and format
+      spellData.description = descriptionText
+        .trim()
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
+        .join('\n');
     }
 
     // Store raw text content for fallback extraction
