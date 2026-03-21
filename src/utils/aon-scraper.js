@@ -2,7 +2,7 @@
  * Fetches and parses Archive of Nethys spell pages
  */
 
-import { FETCH_TIMEOUT_MS } from '../constants/aon-config.js';
+import { FETCH_TIMEOUT_MS, CORS_PROXY } from '../constants/aon-config.js';
 
 /**
  * Fetches HTML from an Archive of Nethys URL
@@ -15,7 +15,8 @@ export async function fetchSpellHTML(url) {
   const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
   try {
-    const response = await fetch(url, {
+    const proxiedUrl = CORS_PROXY + url;
+    const response = await fetch(proxiedUrl, {
       signal: controller.signal,
       headers: {
         'User-Agent':
