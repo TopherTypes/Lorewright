@@ -69,6 +69,16 @@ export async function openSpellPickerModal(options = {}) {
   const listContent = modalContainer.querySelector('.spell-picker-list-content');
   if (listContent) {
     console.log('[spell-picker] Modal inserted. List content element found. HTML length:', listContent.innerHTML.length, 'Children:', listContent.children.length);
+    const styles = window.getComputedStyle(listContent);
+    console.log('[spell-picker] List content computed styles:', {
+      display: styles.display,
+      visibility: styles.visibility,
+      height: styles.height,
+      opacity: styles.opacity,
+      overflow: styles.overflow,
+      flexDirection: styles.flexDirection,
+      pointerEvents: styles.pointerEvents
+    });
   } else {
     console.error('[spell-picker] ERROR: Could not find .spell-picker-list-content in modal!');
   }
