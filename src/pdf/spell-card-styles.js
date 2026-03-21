@@ -12,7 +12,7 @@ export function getSpellCardStyles() {
       height: 100%;
       display: flex;
       flex-direction: column;
-      padding: 0.35in;
+      padding: 0.25in;
       background: #f5f1e6;
       font-family: Georgia, serif;
       font-size: 10pt;
@@ -23,17 +23,16 @@ export function getSpellCardStyles() {
     }
 
     .card-header {
-      margin-bottom: 0.2in;
+      margin-bottom: 0.12in;
       border-bottom: 3px solid #6b5d4f;
-      padding-bottom: 0.15in;
-      margin-bottom: 0.2in;
+      padding-bottom: 0.08in;
     }
 
     .card-name {
-      font-size: 16pt;
+      font-size: 14pt;
       font-weight: bold;
       color: #1a1410;
-      margin-bottom: 0.08in;
+      margin-bottom: 0.04in;
       line-height: 1.2;
     }
 
@@ -45,7 +44,7 @@ export function getSpellCardStyles() {
     }
 
     .card-mechanics {
-      margin-bottom: 0.18in;
+      margin-bottom: 0.08in;
       flex-shrink: 0;
     }
 
@@ -53,9 +52,9 @@ export function getSpellCardStyles() {
       display: grid;
       grid-template-columns: 1.2fr 1.8fr;
       gap: 0.08in;
-      margin-bottom: 0.1in;
-      font-size: 10pt;
-      line-height: 1.4;
+      margin-bottom: 0.06in;
+      font-size: 9pt;
+      line-height: 1.3;
     }
 
     .card-label {
@@ -69,10 +68,10 @@ export function getSpellCardStyles() {
 
     .card-material-note {
       margin-left: 1.2in;
-      font-size: 9pt;
+      font-size: 8pt;
       color: #5c5650;
       margin-bottom: 0.08in;
-      line-height: 1.3;
+      line-height: 1.2;
     }
 
     .card-damage {
@@ -96,13 +95,13 @@ export function getSpellCardStyles() {
     .card-divider {
       height: 2px;
       background: #d4cec4;
-      margin: 0.15in 0;
+      margin: 0.1in 0;
       flex-shrink: 0;
     }
 
     .card-description {
-      font-size: 10pt;
-      line-height: 1.5;
+      font-size: 9pt;
+      line-height: 1.4;
       color: #2c2416;
       flex: 1;
       overflow-y: auto;
@@ -110,7 +109,7 @@ export function getSpellCardStyles() {
     }
 
     .card-description br {
-      line-height: 1.5;
+      line-height: 1.4;
     }
 
     /* Additional enhancements for better readability */
@@ -131,7 +130,7 @@ export function getSpellCardStyles() {
 
     /* Better spacing around divider */
     .card-divider {
-      margin: 0.2in 0;
+      margin: 0.1in 0;
     }
   `;
 }
