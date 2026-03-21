@@ -65,6 +65,14 @@ export async function openSpellPickerModal(options = {}) {
   document.body.appendChild(modalContainer);
   modalContainer.innerHTML = modalHTML;
 
+  // Debug: verify modal was inserted
+  const listContent = modalContainer.querySelector('.spell-picker-list-content');
+  if (listContent) {
+    console.log('[spell-picker] Modal inserted. List content element found. HTML length:', listContent.innerHTML.length, 'Children:', listContent.children.length);
+  } else {
+    console.error('[spell-picker] ERROR: Could not find .spell-picker-list-content in modal!');
+  }
+
   // Attach event listeners
   attachSpellPickerListeners(modalContainer, modalState, onConfirm, onCancel);
 
