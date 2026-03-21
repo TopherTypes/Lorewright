@@ -57,7 +57,7 @@ export async function showCreatureForm(id) {
   activeCreature = creature;
   isDirty = false;
 
-  root.innerHTML = renderFormPage(creature);
+  root.innerHTML = await renderFormPage(creature);
   attachFormListeners(root, creature);
   updateAllOutputs(root, deriveCreature(creature));
   updateSkillVisibility(root, false);
@@ -65,10 +65,13 @@ export async function showCreatureForm(id) {
 
 // ── Render ────────────────────────────────────────────────
 
-function renderFormPage(creature) {
+async function renderFormPage(creature) {
   const isNew  = !creature.meta.id || creature.name === '';
   const title  = isNew ? 'New Creature' : creature.name;
   const crText = isNew ? '' : ` — CR ${formatCR(creature.cr)}`;
+
+  // Await async section renderers
+  const offenceSection = await renderOffenceSection(creature);
 
   return `
     <div class="page-header">
@@ -82,7 +85,7 @@ function renderFormPage(creature) {
       ${renderIdentitySection(creature)}
       ${renderInitiativeSection(creature)}
       ${renderDefenceSection(creature)}
-      ${renderOffenceSection(creature)}
+      ${offenceSection}
       ${renderStatisticsSection(creature)}
       ${renderEcologySection(creature)}
       ${renderSpecialAbilitiesSection(creature)}
@@ -511,7 +514,7 @@ function updateSkillVisibility(root, showAll) {
 
 // ── Dynamic list management ───────────────────────────────
 
-function handleAddListItem(form, listField, root) {
+async function handleAddListItem(form, listField, root) {
   const updated = readFormData(form, activeCreature);
   activeCreature = updated;
 
@@ -521,10 +524,10 @@ function handleAddListItem(form, listField, root) {
   const newList = [...currentList, ''];
   setNestedValue(activeCreature, listField, newList);
 
-  refreshForm(root);
+  await refreshForm(root);
 }
 
-function handleRemoveListItem(form, removeBtn, root) {
+async function handleRemoveListItem(form, removeBtn, root) {
   const listField = removeBtn.dataset.listField;
   const index     = parseInt(removeBtn.dataset.index, 10);
   console.log('[handleRemoveListItem] Removing from', listField, 'at index', index);
@@ -548,17 +551,17 @@ function handleRemoveListItem(form, removeBtn, root) {
   }
 
   console.log('[handleRemoveListItem] Updated activeCreature:', activeCreature);
-  refreshForm(root);
+  await refreshForm(root);
 }
 
-function handleAddSpecialAbility(form, root) {
+async function handleAddSpecialAbility(form, root) {
   const updated = readFormData(form, activeCreature);
   activeCreature = updated;
   activeCreature.specialAbilities.push({ name: '', type: 'Ex', description: '' });
-  refreshForm(root);
+  await refreshForm(root);
 }
 
-function handleRemoveSpecialAbility(form, index, root) {
+async function handleRemoveSpecialAbility(form, index, root) {
   console.log('[handleRemoveSpecialAbility] Removing special ability at index', index);
   const updated = readFormData(form, activeCreature);
   activeCreature = updated;
@@ -571,10 +574,10 @@ function handleRemoveSpecialAbility(form, index, root) {
   }
 
   console.log('[handleRemoveSpecialAbility] Special abilities after splice:', activeCreature.specialAbilities);
-  refreshForm(root);
+  await refreshForm(root);
 }
 
-function handleRemoveSkill(form, index, root) {
+async function handleRemoveSkill(form, index, root) {
   console.log('[handleRemoveSkill] Removing skill at index', index);
   const updated = readFormData(form, activeCreature);
   activeCreature = updated;
@@ -587,20 +590,20 @@ function handleRemoveSkill(form, index, root) {
   }
 
   console.log('[handleRemoveSkill] Skills after splice:', activeCreature.statistics.skills);
-  refreshForm(root);
+  await refreshForm(root);
 }
 
-function handleAddMeleeAttack(form, root) {
+async function handleAddMeleeAttack(form, root) {
   const updated = readFormData(form, activeCreature);
   activeCreature = updated;
   if (!Array.isArray(activeCreature.offence.melee)) {
     activeCreature.offence.melee = [];
   }
   activeCreature.offence.melee.push({ name: '', damageType: '' });
-  refreshForm(root);
+  await refreshForm(root);
 }
 
-function handleRemoveMeleeAttack(form, index, root) {
+async function handleRemoveMeleeAttack(form, index, root) {
   console.log('[handleRemoveMeleeAttack] Removing melee attack at index', index);
   const updated = readFormData(form, activeCreature);
   activeCreature = updated;
@@ -613,20 +616,20 @@ function handleRemoveMeleeAttack(form, index, root) {
   }
 
   console.log('[handleRemoveMeleeAttack] Melee attacks after splice:', activeCreature.offence.melee);
-  refreshForm(root);
+  await refreshForm(root);
 }
 
-function handleAddRangedAttack(form, root) {
+async function handleAddRangedAttack(form, root) {
   const updated = readFormData(form, activeCreature);
   activeCreature = updated;
   if (!Array.isArray(activeCreature.offence.ranged)) {
     activeCreature.offence.ranged = [];
   }
   activeCreature.offence.ranged.push({ name: '', damageType: '' });
-  refreshForm(root);
+  await refreshForm(root);
 }
 
-function handleRemoveRangedAttack(form, index, root) {
+async function handleRemoveRangedAttack(form, index, root) {
   console.log('[handleRemoveRangedAttack] Removing ranged attack at index', index);
   const updated = readFormData(form, activeCreature);
   activeCreature = updated;
@@ -639,26 +642,26 @@ function handleRemoveRangedAttack(form, index, root) {
   }
 
   console.log('[handleRemoveRangedAttack] Ranged attacks after splice:', activeCreature.offence.ranged);
-  refreshForm(root);
+  await refreshForm(root);
 }
 
 // ── Spell picker handlers ──────────────────────────────────
 
-function handleRemoveSpell(form, spellType, spellId, root) {
+async function handleRemoveSpell(form, spellType, spellId, root) {
   console.log('[handleRemoveSpell] Removing spell', spellId, 'from', spellType);
   const updated = readFormData(form, activeCreature);
   activeCreature = removeSpellFromCreature(updated, spellId, spellType);
-  refreshForm(root);
+  await refreshForm(root);
 }
 
-function handleAddSpellSingle(form, spellType, root) {
+async function handleAddSpellSingle(form, spellType, root) {
   console.log('[handleAddSpellSingle] Quick-add spell for', spellType);
   // Placeholder: In future, this could show a dropdown or inline search
   // For now, open the modal like bulk add
   handleAddSpellBulk(form, spellType, root);
 }
 
-function handleAddSpellBulk(form, spellType, root) {
+async function handleAddSpellBulk(form, spellType, root) {
   console.log('[handleAddSpellBulk] Opening spell picker modal for', spellType);
   const updated = readFormData(form, activeCreature);
   activeCreature = updated;
@@ -678,7 +681,7 @@ function handleAddSpellBulk(form, spellType, root) {
       selectedSpells.forEach(spellRef => {
         activeCreature = addSpellToCreature(activeCreature, spellRef.spellId, spellType, spellRef.level ?? 0, spellRef.spellName);
       });
-      refreshForm(root);
+      await refreshForm(root);
       scheduleAutosave(root);
     },
     onCancel: () => {
@@ -726,7 +729,7 @@ function restoreDetailsState(root, savedState) {
  * Re-renders the form page with the current activeCreature state.
  * Used after adding/removing dynamic list items.
  */
-function refreshForm(root) {
+async function refreshForm(root) {
   console.log('[refreshForm] Starting form refresh with activeCreature:', activeCreature);
   const showAll = root.querySelector('#skills-toggle')?.dataset?.showAll === 'true';
 
@@ -749,7 +752,7 @@ function refreshForm(root) {
   // Clear the root and render new form
   // (innerHTML replacement should clear everything, but being explicit)
   root.textContent = '';
-  root.innerHTML = renderFormPage(activeCreature);
+  root.innerHTML = await renderFormPage(activeCreature);
 
   attachFormListeners(root, activeCreature);
   updateAllOutputs(root, deriveCreature(activeCreature));

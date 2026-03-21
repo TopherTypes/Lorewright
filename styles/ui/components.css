@@ -840,7 +840,7 @@ output.calculated {
 .spell-slot-row input,
 .prepared-spell-slot-row input,
 .sla-uses-row input {
-  width: 50px;
+  width: 70px;
   flex-shrink: 0;
 }
 
