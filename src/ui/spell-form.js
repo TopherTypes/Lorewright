@@ -51,8 +51,19 @@ export async function showSpellForm(id) {
   activeSpell = spell;
   isDirty = false;
 
+  // Check if we should expand all sections (e.g., after import)
+  const shouldExpandAll = sessionStorage.getItem('expandAllDetails') === 'true';
+  sessionStorage.removeItem('expandAllDetails');
+
   root.innerHTML = renderFormPage(spell);
   attachFormListeners(root);
+
+  // Expand all sections if flag was set
+  if (shouldExpandAll) {
+    document.querySelectorAll('.form-section').forEach(details => {
+      details.setAttribute('open', '');
+    });
+  }
 }
 
 // ── Render ────────────────────────────────────────────────
