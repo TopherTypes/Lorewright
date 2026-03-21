@@ -1,6 +1,8 @@
 // HTML template generators for creature stat cards.
 // Supports three variants: basic (poker), complex (index), spellcaster (index).
 
+import { getSpellById } from '../storage/spells.js';
+
 /**
  * Safely escape HTML to prevent injection.
  */
@@ -215,9 +217,9 @@ export function createComplexCreatureCardHTML(creature, imageUrl, orientation = 
  * @param {object} creature Derived creature object
  * @param {string} imageUrl Optional image URL
  * @param {string} orientation 'landscape' | 'portrait'
- * @returns {string} HTML string
+ * @returns {Promise<string>} Promise resolving to HTML string
  */
-export function createSpellcasterCardHTML(creature, imageUrl, orientation = 'landscape') {
+export async function createSpellcasterCardHTML(creature, imageUrl, orientation = 'landscape') {
   const name = escapeHtml(creature.name || 'Unknown Creature');
   const type = escapeHtml(creature.type || '');
   const size = escapeHtml(creature.size || 'Medium');
@@ -256,6 +258,43 @@ export function createSpellcasterCardHTML(creature, imageUrl, orientation = 'lan
   const hasPreparedIds = (offence.spellsPreparedIds?.length ?? 0) > 0;
   const hasKnownIds = (offence.spellsKnownIds?.length ?? 0) > 0;
   const hasLikeAbilityIds = (offence.spellLikeAbilityIds?.length ?? 0) > 0;
+
+  // Helper to resolve spell names from database if not cached
+  const resolveSpellName = async (spellRef) => {
+    if (spellRef.spellName) {
+      return spellRef.spellName;
+    }
+    try {
+      const spell = await getSpellById(spellRef.spellId);
+      return spell?.name || 'Unknown Spell';
+    } catch (err) {
+      console.warn(`Failed to resolve spell ${spellRef.spellId}:`, err);
+      return 'Unknown Spell';
+    }
+  };
+
+  // Resolve all spell names upfront
+  let resolvedPreparedNames = {};
+  let resolvedKnownNames = {};
+  let resolvedAbilityNames = {};
+
+  if (hasPreparedIds) {
+    for (const spellRef of offence.spellsPreparedIds) {
+      resolvedPreparedNames[spellRef.spellId] = await resolveSpellName(spellRef);
+    }
+  }
+
+  if (hasKnownIds) {
+    for (const spellRef of offence.spellsKnownIds) {
+      resolvedKnownNames[spellRef.spellId] = await resolveSpellName(spellRef);
+    }
+  }
+
+  if (hasLikeAbilityIds) {
+    for (const spellRef of offence.spellLikeAbilityIds) {
+      resolvedAbilityNames[spellRef.spellId] = await resolveSpellName(spellRef);
+    }
+  }
 
   // Parse spell list into levels
   const parseSpellList = (spellText) => {
@@ -338,7 +377,8 @@ export function createSpellcasterCardHTML(creature, imageUrl, orientation = 'lan
                 const spellId = spellRef.spellId;
                 const slots = spellSlots.spellsPreparedSlots?.[spellId] ?? 1;
                 const slotBoxes = Array(slots).fill('☐').join('');
-                return `<div class="spell-item">${escapeHtml(spellRef.spellName || 'Unknown')} ${slotBoxes}</div>`;
+                const spellName = resolvedPreparedNames[spellId] || spellRef.spellName || 'Unknown';
+                return `<div class="spell-item">${escapeHtml(spellName)} ${slotBoxes}</div>`;
               }).join('')
             :
               Object.keys(preparedLevels).sort((a, b) => parseInt(a) - parseInt(b)).map(level => `
@@ -376,7 +416,8 @@ export function createSpellcasterCardHTML(creature, imageUrl, orientation = 'lan
                   const spellId = spellRef.spellId;
                   const usesPerDay = spellSlots.spellLikeAbilityUsesPerDay?.[spellId] ?? 1;
                   const slotBoxes = Array(usesPerDay).fill('☐').join('');
-                  return `<div>${escapeHtml(spellRef.spellName || 'Unknown')} ${slotBoxes}</div>`;
+                  const spellName = resolvedAbilityNames[spellId] || spellRef.spellName || 'Unknown';
+                  return `<div>${escapeHtml(spellName)} ${slotBoxes}</div>`;
                 }).join('')}
               </div>
             ` : `
