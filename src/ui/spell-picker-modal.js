@@ -79,6 +79,27 @@ export async function openSpellPickerModal(options = {}) {
       flexDirection: styles.flexDirection,
       pointerEvents: styles.pointerEvents
     });
+
+    // Check first spell row
+    const firstRow = listContent.querySelector('.spell-picker-row');
+    if (firstRow) {
+      const rowStyles = window.getComputedStyle(firstRow);
+      const firstSpellName = firstRow.querySelector('.spell-name');
+      const nameStyles = firstSpellName ? window.getComputedStyle(firstSpellName) : null;
+      console.log('[spell-picker] First spell row computed styles:', {
+        display: rowStyles.display,
+        height: rowStyles.height,
+        visibility: rowStyles.visibility,
+        opacity: rowStyles.opacity
+      });
+      console.log('[spell-picker] Spell name styles:', nameStyles ? {
+        display: nameStyles.display,
+        color: nameStyles.color,
+        fontSize: nameStyles.fontSize,
+        opacity: nameStyles.opacity,
+        textContent: firstSpellName.textContent
+      } : 'NOT FOUND');
+    }
   } else {
     console.error('[spell-picker] ERROR: Could not find .spell-picker-list-content in modal!');
   }
