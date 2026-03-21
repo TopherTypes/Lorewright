@@ -676,7 +676,7 @@ function handleAddSpellBulk(form, spellType, root) {
       console.log('[handleAddSpellBulk] Modal confirmed with spells:', selectedSpells);
       // Add each selected spell to the creature
       selectedSpells.forEach(spellRef => {
-        activeCreature = addSpellToCreature(activeCreature, spellRef.spellId, spellType, spellRef.level ?? 0);
+        activeCreature = addSpellToCreature(activeCreature, spellRef.spellId, spellType, spellRef.level ?? 0, spellRef.spellName);
       });
       refreshForm(root);
       scheduleAutosave(root);

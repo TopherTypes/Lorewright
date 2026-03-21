@@ -193,9 +193,10 @@ export function deriveCreature(creature) {
  * @param {string} spellId The ID of the spell to add
  * @param {string} spellType One of: 'spellsKnown', 'spellsPrepared', 'spellLikeAbilities'
  * @param {number} level The spell level (0-9), not required for spellLikeAbilities
+ * @param {string} spellName The name of the spell (optional, defaults to 'Unknown Spell')
  * @returns {object} The updated creature
  */
-export function addSpellToCreature(creature, spellId, spellType, level = 0) {
+export function addSpellToCreature(creature, spellId, spellType, level = 0, spellName = 'Unknown Spell') {
   const typeMap = {
     'spellsKnown': 'spellsKnownIds',
     'spellsPrepared': 'spellsPreparedIds',
@@ -215,8 +216,8 @@ export function addSpellToCreature(creature, spellId, spellType, level = 0) {
   }
 
   const newSpell = spellType === 'spellLikeAbilities'
-    ? { spellId }
-    : { spellId, level };
+    ? { spellId, spellName }
+    : { spellId, level, spellName };
 
   return {
     ...creature,
