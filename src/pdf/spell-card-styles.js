@@ -12,7 +12,7 @@ export function getSpellCardStyles() {
       height: 100%;
       display: flex;
       flex-direction: column;
-      padding: 0.2in;
+      padding: 0.1in;
       background: #f5f1e6;
       font-family: Georgia, serif;
       font-size: 10pt;
@@ -23,9 +23,9 @@ export function getSpellCardStyles() {
     }
 
     .card-header {
-      margin-bottom: 0.08in;
+      margin-bottom: 0.04in;
       border-bottom: 3px solid #6b5d4f;
-      padding-bottom: 0.06in;
+      padding-bottom: 0.03in;
     }
 
     .card-name {
@@ -48,7 +48,7 @@ export function getSpellCardStyles() {
       display: flex;
       justify-content: space-between;
       gap: 0.05in;
-      margin-bottom: 0.08in;
+      margin-bottom: 0.04in;
       flex-shrink: 0;
     }
 
@@ -78,13 +78,13 @@ export function getSpellCardStyles() {
       background: #faf8f4;
       border: 1px solid #e8e3d8;
       border-radius: 2px;
-      padding: 0.08in;
-      margin-bottom: 0.08in;
+      padding: 0.06in;
+      margin-bottom: 0.04in;
       flex-shrink: 0;
     }
 
     .card-mechanics {
-      margin-bottom: 0.08in;
+      margin-bottom: 0.04in;
       flex-shrink: 0;
     }
 
@@ -92,9 +92,9 @@ export function getSpellCardStyles() {
       display: grid;
       grid-template-columns: 0.95fr 1.55fr;
       gap: 0.06in;
-      margin-bottom: 0.05in;
+      margin-bottom: 0.03in;
       font-size: 8.5pt;
-      line-height: 1.3;
+      line-height: 1.25;
     }
 
     .card-label {
@@ -110,7 +110,7 @@ export function getSpellCardStyles() {
       margin-left: 0.95in;
       font-size: 7.5pt;
       color: #5c5650;
-      margin-bottom: 0.05in;
+      margin-bottom: 0.03in;
       line-height: 1.2;
     }
 
@@ -137,13 +137,13 @@ export function getSpellCardStyles() {
     .card-divider {
       height: 1px;
       background: #d4cec4;
-      margin: 0.06in 0;
+      margin: 0.03in 0;
       flex-shrink: 0;
     }
 
     .card-description {
       font-size: 8pt;
-      line-height: 1.35;
+      line-height: 1.3;
       color: #2c2416;
       flex: 1;
       overflow-y: auto;
@@ -160,8 +160,8 @@ export function getSpellCardStyles() {
       background: #f0e8dc;
       border: 1px solid #d4cec4;
       border-radius: 2px;
-      padding: 0.06in;
-      margin-top: 0.06in;
+      padding: 0.05in;
+      margin-top: 0.03in;
       flex-shrink: 0;
     }
 
