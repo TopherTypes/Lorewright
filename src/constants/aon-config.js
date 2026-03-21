@@ -4,6 +4,7 @@
 
 export const AON_BASE_URL = 'https://aonprd.com';
 export const AON_SPELL_PATH = 'SpellDisplay.aspx';
+export const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
 export const FETCH_TIMEOUT_MS = 5000;
 export const PREVIEW_DESCRIPTION_LENGTH = 200;
 
