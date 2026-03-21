@@ -113,23 +113,18 @@ function extractSpellName(text) {
  * Extracts spell level from text
  */
 function extractLevel(text) {
-  const levelMatch = text.match(
-    /(?:level\s+)?(\d+)(?:-level)?|(?:cantrip|0-level)/i
-  );
-
-  if (levelMatch) {
-    const levelNum = levelMatch[1];
-    if (levelNum !== undefined) {
-      const level = parseInt(levelNum, 10);
-      if (level >= 0 && level <= 9) {
-        return level;
-      }
-    }
+  // Check for cantrip or 0-level first
+  if (/\b(?:cantrip|0-level)\b/i.test(text)) {
+    return 0;
   }
 
-  // Check for cantrip
-  if (text.toLowerCase().includes('cantrip')) {
-    return 0;
+  // Check for numeric levels
+  const levelMatch = text.match(/(?:level\s+)?(\d+)(?:-level)?/i);
+  if (levelMatch) {
+    const level = parseInt(levelMatch[1], 10);
+    if (level >= 0 && level <= 9) {
+      return level;
+    }
   }
 
   return normalizeLevel('');
