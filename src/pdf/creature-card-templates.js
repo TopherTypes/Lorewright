@@ -352,22 +352,18 @@ export function createSpellcasterCardHTML(creature, imageUrl, orientation = 'lan
         ${Object.keys(knownLevels).length > 0 ? `
           <div style="margin-top: 4px;">
             <div style="font-weight: bold; font-size: 8px; margin-bottom: 2px;">Spells Known:</div>
-            ${hasKnownIds ? `
-              ${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].filter(level => {
-                const hasSpellsAtLevel = (offence.spellsKnownIds || []).some(s => s.level === level);
-                return hasSpellsAtLevel;
-              }).map(level => {
-                const slots = spellSlots.spellsKnownSlots?.[level] ?? 0;
-                const slotBoxes = Array(slots).fill('☐').join('');
-                const levelLabel = level === 0 ? 'Cantrips' : `Lvl ${level}`;
-                return `<div class="spell-item">${levelLabel} ${slotBoxes}</div>`;
-              }).join('')}
-            ` : `
-              ${Object.keys(knownLevels).sort((a, b) => parseInt(a) - parseInt(b)).map(level => `
-                <div class="spell-level">${level === '0' ? 'Cantrips' : `${level}`}:</div>
-                ${knownLevels[level].map(spell => `<div class="spell-item">${spell}</div>`).join('')}
-              `).join('')}
-            `}
+            ${Object.keys(knownLevels).sort((a, b) => parseInt(a) - parseInt(b)).map(level => {
+              const slots = spellSlots.spellsKnownSlots?.[level] ?? 0;
+              const slotBoxes = Array(slots).fill('☐').join('');
+              const levelLabel = level === '0' ? 'Cantrips' : `Lvl ${level}`;
+              const spells = knownLevels[level] || [];
+              return `
+                <div style="margin-bottom: 2px;">
+                  <div style="font-weight: bold; font-size: 7px;">${levelLabel} ${slotBoxes}</div>
+                  ${spells.map(spell => `<div class="spell-item">${spell}</div>`).join('')}
+                </div>
+              `;
+            }).join('')}
           </div>
         ` : ''}
 
