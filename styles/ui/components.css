@@ -743,10 +743,7 @@ output.calculated {
   background: var(--color-bg);
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-sm);
-  max-height: 300px;
-  overflow-y: auto;
   flex: 1;
-  min-height: 0;
 }
 
 .spell-picker-list-content {
