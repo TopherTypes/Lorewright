@@ -241,7 +241,7 @@ export function renderDefenceSection(c) {
 
 // ── Helper for spell picker ───────────────────────────────
 
-function renderSpellPickerList(spells = [], spellType = 'spellsKnown') {
+async function renderSpellPickerList(spells = [], spellType = 'spellsKnown') {
   const typeLabels = {
     'spellsKnown': 'Spells Known',
     'spellsPrepared': 'Spells Prepared',
@@ -258,6 +258,17 @@ function renderSpellPickerList(spells = [], spellType = 'spellsKnown') {
     spellsByLevel[level].push(spellRef);
   });
 
+  // Resolve all spell names in parallel
+  const resolvedNames = await Promise.all(
+    spells.map(spellRef => resolveSpellName(spellRef))
+  );
+
+  // Create a map of spellId -> resolved name for quick lookup
+  const spellNameMap = {};
+  spells.forEach((spellRef, index) => {
+    spellNameMap[spellRef.spellId] = resolvedNames[index];
+  });
+
   // Render grouped spells
   let spellContent = '';
   const sortedLevels = Object.keys(spellsByLevel).map(Number).sort((a, b) => a - b);
@@ -267,7 +278,7 @@ function renderSpellPickerList(spells = [], spellType = 'spellsKnown') {
     const levelLabel = level === 0 ? 'Cantrips' : `Level ${level}`;
 
     const spellItems = levelSpells.map((spellRef, i) => {
-      const spellName = spellRef.spellName || '(Unknown Spell)';
+      const spellName = spellNameMap[spellRef.spellId];
       return `
         <div class="spell-picker-item" data-spell-list="${spellType}" data-spell-id="${escapeHtml(spellRef.spellId)}" data-level="${level}">
           <span class="spell-name">${escapeHtml(spellName)} - Level ${level}</span>
@@ -405,6 +416,11 @@ export async function renderOffenceSection(c) {
     `;
   }
 
+  // Render all spell picker lists (these need to resolve spell names from database)
+  const spellsKnownHtml = await renderSpellPickerList(c.offence.spellsKnownIds ?? [], 'spellsKnown');
+  const spellsPreparedHtml = await renderSpellPickerList(c.offence.spellsPreparedIds ?? [], 'spellsPrepared');
+  const spellLikeAbilitiesHtml = await renderSpellPickerList(c.offence.spellLikeAbilityIds ?? [], 'spellLikeAbilities');
+
   return section('Offence', `
     <div class="form-grid-3">
       ${field('Land (ft.)',  numInput('offence.speed.land',   speed.land))}
@@ -421,11 +437,11 @@ export async function renderOffenceSection(c) {
       ${field('Space', textInput('offence.space', c.offence.space, 'placeholder="e.g. 10 ft."'))}
       ${field('Reach', textInput('offence.reach', c.offence.reach, 'placeholder="e.g. 5 ft."'))}
     </div>
-    ${field('Spells Known',         renderSpellPickerList(c.offence.spellsKnownIds ?? [], 'spellsKnown'))}
+    ${field('Spells Known',         spellsKnownHtml)}
     ${hasSpellsKnown ? field('Spell Slots', spellSlotsContent) : ''}
-    ${field('Spells Prepared',      renderSpellPickerList(c.offence.spellsPreparedIds ?? [], 'spellsPrepared'))}
+    ${field('Spells Prepared',      spellsPreparedHtml)}
     ${spellsPreparedIds.length > 0 ? field('Prepared Spell Slots', preparedSlotsContent) : ''}
-    ${field('Spell-Like Abilities', renderSpellPickerList(c.offence.spellLikeAbilityIds ?? [], 'spellLikeAbilities'))}
+    ${field('Spell-Like Abilities', spellLikeAbilitiesHtml)}
     ${spellLikeAbilityIds.length > 0 ? field('SLA Uses Per Day', slaUsesContent) : ''}
   `);
 }
