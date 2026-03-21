@@ -745,6 +745,8 @@ output.calculated {
   border-radius: var(--radius-sm);
   max-height: 300px;
   overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .spell-picker-list-content {
