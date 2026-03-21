@@ -16,6 +16,7 @@ export function createSpellCardHTML(spell) {
   const savingThrow = escapeHtml(spell.savingThrow || 'None');
   const spellResistance = spell.spellResistance ? 'Yes' : 'No';
   const description = escapeHtml(spell.description || '');
+  const scalingInfo = escapeHtml(spell.scalingInfo || '');
 
   // Build components string with badges
   const components = spell.components || {};
@@ -46,6 +47,17 @@ export function createSpellCardHTML(spell) {
     `;
   }
 
+  // Build scaling info section if present
+  let scalingHtml = '';
+  if (scalingInfo) {
+    scalingHtml = `
+      <div class="card-scaling-section">
+        <div class="card-scaling-header">At Higher Levels</div>
+        <div class="card-scaling-text">${scalingInfo.replace(/\n/g, '<br>')}</div>
+      </div>
+    `;
+  }
+
   return `
     <div class="spell-card">
       <div class="card-header">
@@ -53,30 +65,33 @@ export function createSpellCardHTML(spell) {
         <div class="card-level-school">${level === 0 ? 'Cantrip' : `Level ${level}`} ${school ? '• ' + school : ''}</div>
       </div>
 
-      <div class="card-mechanics">
-        <div class="card-row">
-          <div class="card-label">Casting Time:</div>
-          <div class="card-value">${castingTime}</div>
+      <div class="card-attributes-row">
+        <div class="card-attribute">
+          <span class="card-attribute-icon">⚡</span>
+          <span class="card-attribute-value">${castingTime}</span>
         </div>
-        <div class="card-row">
-          <div class="card-label">Range:</div>
-          <div class="card-value">${range}</div>
+        <div class="card-attribute">
+          <span class="card-attribute-icon">📏</span>
+          <span class="card-attribute-value">${range}</span>
         </div>
-        <div class="card-row">
-          <div class="card-label">Duration:</div>
-          <div class="card-value">${duration}</div>
+        <div class="card-attribute">
+          <span class="card-attribute-icon">⌛</span>
+          <span class="card-attribute-value">${duration}</span>
         </div>
+      </div>
+
+      <div class="card-mechanics-box">
         <div class="card-row">
           <div class="card-label">Components:</div>
           <div class="card-value">${componentsStr}</div>
         </div>
         ${materialNote}
         <div class="card-row">
-          <div class="card-label">Saving Throw:</div>
+          <div class="card-label">Save:</div>
           <div class="card-value">${savingThrow}</div>
         </div>
         <div class="card-row">
-          <div class="card-label">Spell Resistance:</div>
+          <div class="card-label">SR:</div>
           <div class="card-value">${spellResistance}</div>
         </div>
         ${damageHtml}
@@ -87,6 +102,8 @@ export function createSpellCardHTML(spell) {
       <div class="card-description">
         ${description.replace(/\n/g, '<br>')}
       </div>
+
+      ${scalingHtml}
     </div>
   `;
 }

@@ -84,5 +84,6 @@ export function createEmptySpell() {
     description:     '',      // Full spell text/mechanics
     damageType:      '',      // Acid, Cold, Fire, etc. (optional)
     damageRolls:     '',      // Flexible notation: "1d4" or "2d6+2 per 2 levels", etc.
+    scalingInfo:     '',      // Upcast/heightened spell information (e.g., "At Higher Levels: ...")
   };
 }
