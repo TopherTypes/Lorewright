@@ -49,7 +49,7 @@ export async function generateCreatureCardsPDF(cardConfigs) {
       }
 
       // Generate card HTML based on variant
-      const html = generateCardHTML(config);
+      const html = await generateCardHTML(config);
 
       // Render card HTML to canvas
       const canvas = await renderCardToCanvas(html, config.variant, config.orientation);
@@ -105,9 +105,9 @@ export async function generateCreatureCardsPDF(cardConfigs) {
 /**
  * Generate HTML for a card based on its configuration.
  * @param {object} config {creature, variant, orientation, imageUrl}
- * @returns {string} HTML string
+ * @returns {Promise<string>} Promise resolving to HTML string
  */
-function generateCardHTML(config) {
+async function generateCardHTML(config) {
   const { creature, variant, orientation, imageUrl } = config;
 
   if (variant === 'basic') {
@@ -115,7 +115,7 @@ function generateCardHTML(config) {
   } else if (variant === 'complex') {
     return createComplexCreatureCardHTML(creature, imageUrl, orientation);
   } else if (variant === 'spellcaster') {
-    return createSpellcasterCardHTML(creature, imageUrl, orientation);
+    return await createSpellcasterCardHTML(creature, imageUrl, orientation);
   } else {
     throw new Error(`Unknown variant: ${variant}`);
   }
