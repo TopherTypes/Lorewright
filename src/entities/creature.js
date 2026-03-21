@@ -145,9 +145,9 @@ export function createEmptyCreature() {
  */
 export function deriveCreature(creature) {
   // Clone so we never mutate the in-memory stored object
-  const c = structuredClone(creature);
-  const stats = c.statistics;
-  const def   = c.defence;
+  const derivedCreature = structuredClone(creature);
+  const stats = derivedCreature.statistics;
+  const def   = derivedCreature.defence;
 
   // ── Ability score modifiers ──────────────────────────────
   stats.strMod = abilityModifier(stats.str ?? 10);
@@ -159,16 +159,16 @@ export function deriveCreature(creature) {
 
   // ── Initiative total ──────────────────────────────────────
   // total = DEX modifier + any misc bonus (e.g. Improved Initiative feat)
-  c.initiative.total = stats.dexMod + (c.initiative.miscModifier ?? 0);
+  derivedCreature.initiative.total = stats.dexMod + (derivedCreature.initiative.miscModifier ?? 0);
 
   // ── Suggested XP from CR ──────────────────────────────────
-  c.suggestedXP = xpFromCR(c.cr);
+  derivedCreature.suggestedXP = xpFromCR(derivedCreature.cr);
 
   // ── Armour Class ─────────────────────────────────────────
   const ac = def.ac;
 
   // Size AC modifier is always derived from creature size — never stored manually
-  ac.size = SIZE_AC_MODIFIERS[c.size] ?? 0;
+  ac.size = SIZE_AC_MODIFIERS[derivedCreature.size] ?? 0;
   ac.dex        = stats.dexMod;
   ac.total      = calculateAC(ac, stats.dexMod);
   ac.touch      = calculateTouchAC(ac, stats.dexMod);
@@ -185,8 +185,8 @@ export function deriveCreature(creature) {
   def.hp.avgFromHD = averageHPFromHD(def.hp.hd ?? '');
 
   // ── CMB / CMD ─────────────────────────────────────────────
-  stats.cmb = calculateCMB(stats.bab ?? 0, stats.strMod, c.size, stats.cmbMisc ?? 0);
-  stats.cmd = calculateCMD(stats.bab ?? 0, stats.strMod, stats.dexMod, c.size, stats.cmdMisc ?? 0);
+  stats.cmb = calculateCMB(stats.bab ?? 0, stats.strMod, derivedCreature.size, stats.cmbMisc ?? 0);
+  stats.cmd = calculateCMD(stats.bab ?? 0, stats.strMod, stats.dexMod, derivedCreature.size, stats.cmdMisc ?? 0);
 
   // ── Skill totals ──────────────────────────────────────────
   stats.skills = (stats.skills ?? []).map(skill => {
@@ -196,7 +196,7 @@ export function deriveCreature(creature) {
     return { ...skill, total: (skill.ranks ?? 0) + abilityMod };
   });
 
-  return c;
+  return derivedCreature;
 }
 
 /**
