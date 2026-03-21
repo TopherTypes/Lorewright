@@ -22,18 +22,30 @@ export async function openSpellPickerModal(options = {}) {
 
   // Fetch all spells and schools for filtering
   const allSpells = await getAvailableSpells();
+  console.log('[spell-picker] Fetched spells:', allSpells.length, 'spells', allSpells);
   const schools = await getAllSpellSchools();
+  console.log('[spell-picker] Available schools:', schools);
 
   // Track current state in the modal session
+  let selectedIds;
+  try {
+    selectedIds = new Set(existingSpellIds.map(s => s.spellId));
+    console.log('[spell-picker] Selected IDs:', selectedIds);
+  } catch (err) {
+    console.error('[spell-picker] Error processing existingSpellIds:', err, existingSpellIds);
+    selectedIds = new Set();
+  }
+
   const modalState = {
     allSpells,
     schools,
-    selectedIds: new Set(existingSpellIds.map(s => s.spellId)),
+    selectedIds,
     searchTerm: '',
     filteredSpells: allSpells,
     filterLevels: new Set(),
     filterSchools: new Set(),
   };
+  console.log('[spell-picker] Initialized modalState with', modalState.filteredSpells.length, 'spells in filteredSpells');
 
   // Render and show the modal
   const modalHTML = renderSpellPickerModalHTML(modalState, spellType);
