@@ -80,18 +80,6 @@ function promisifyRequest(request) {
   });
 }
 
-/**
- * Opens a transaction and returns the object store.
- * @param {string} storeName
- * @param {'readonly'|'readwrite'} mode
- * @returns {Promise<IDBObjectStore>}
- */
-async function getStore(storeName, mode = 'readonly') {
-  const db = await openDatabase();
-  const transaction = db.transaction(storeName, mode);
-  return transaction.objectStore(storeName);
-}
-
 // ── Public CRUD functions ──────────────────────────────────
 
 /**
@@ -100,7 +88,9 @@ async function getStore(storeName, mode = 'readonly') {
  * @returns {Promise<any[]>}
  */
 export async function getAll(storeName) {
-  const store = await getStore(storeName, 'readonly');
+  const db = await openDatabase();
+  const transaction = db.transaction(storeName, 'readonly');
+  const store = transaction.objectStore(storeName);
   return promisifyRequest(store.getAll());
 }
 
@@ -111,7 +101,9 @@ export async function getAll(storeName) {
  * @returns {Promise<any|undefined>}
  */
 export async function getById(storeName, id) {
-  const store = await getStore(storeName, 'readonly');
+  const db = await openDatabase();
+  const transaction = db.transaction(storeName, 'readonly');
+  const store = transaction.objectStore(storeName);
   return promisifyRequest(store.get(id));
 }
 
@@ -123,7 +115,9 @@ export async function getById(storeName, id) {
  * @returns {Promise<void>}
  */
 export async function put(storeName, record) {
-  const store = await getStore(storeName, 'readwrite');
+  const db = await openDatabase();
+  const transaction = db.transaction(storeName, 'readwrite');
+  const store = transaction.objectStore(storeName);
   return promisifyRequest(store.put(record));
 }
 
@@ -134,7 +128,9 @@ export async function put(storeName, record) {
  * @returns {Promise<void>}
  */
 export async function remove(storeName, id) {
-  const store = await getStore(storeName, 'readwrite');
+  const db = await openDatabase();
+  const transaction = db.transaction(storeName, 'readwrite');
+  const store = transaction.objectStore(storeName);
   return promisifyRequest(store.delete(id));
 }
 
@@ -144,7 +140,9 @@ export async function remove(storeName, id) {
  * @returns {Promise<void>}
  */
 export async function clearStore(storeName) {
-  const store = await getStore(storeName, 'readwrite');
+  const db = await openDatabase();
+  const transaction = db.transaction(storeName, 'readwrite');
+  const store = transaction.objectStore(storeName);
   return promisifyRequest(store.clear());
 }
 
