@@ -94,6 +94,18 @@ export function createEmptyCreature() {
       spellsKnownIds:       [],
       spellsPreparedIds:    [],
       spellLikeAbilityIds:  [],
+      // NEW: Spell slots tracking
+      spellSlots: {
+        casterLevel: 1,
+        spellsKnownSlots: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0 },
+        spellsPreparedSlots: {},
+        spellLikeAbilityUsesPerDay: {},
+      },
+      spellUsage: {
+        spellsKnownUsed: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0 },
+        spellsPreparedUsed: {},
+        spellLikeAbilityUsed: {},
+      },
     },
     statistics: {
       str: 10,
@@ -194,9 +206,10 @@ export function deriveCreature(creature) {
  * @param {string} spellType One of: 'spellsKnown', 'spellsPrepared', 'spellLikeAbilities'
  * @param {number} level The spell level (0-9), not required for spellLikeAbilities
  * @param {string} spellName The name of the spell (optional, defaults to 'Unknown Spell')
+ * @param {number} slots Optional: number of slots/uses for prepared spells or SLAs
  * @returns {object} The updated creature
  */
-export function addSpellToCreature(creature, spellId, spellType, level = 0, spellName = 'Unknown Spell') {
+export function addSpellToCreature(creature, spellId, spellType, level = 0, spellName = 'Unknown Spell', slots = 1) {
   const typeMap = {
     'spellsKnown': 'spellsKnownIds',
     'spellsPrepared': 'spellsPreparedIds',
@@ -219,13 +232,29 @@ export function addSpellToCreature(creature, spellId, spellType, level = 0, spel
     ? { spellId, spellName }
     : { spellId, level, spellName };
 
-  return {
+  const updatedCreature = {
     ...creature,
     offence: {
       ...creature.offence,
       [fieldName]: [...spellArray, newSpell]
     }
   };
+
+  // Initialize slot data for prepared spells and SLAs
+  if (spellType === 'spellsPrepared' || spellType === 'spellLikeAbilities') {
+    const slotKey = spellType === 'spellsPrepared' ? 'spellsPreparedSlots' : 'spellLikeAbilityUsesPerDay';
+    updatedCreature.offence.spellSlots = updatedCreature.offence.spellSlots ?? {};
+    updatedCreature.offence.spellSlots[slotKey] = updatedCreature.offence.spellSlots[slotKey] ?? {};
+    updatedCreature.offence.spellSlots[slotKey][spellId] = slots;
+
+    // Initialize usage tracker
+    const usageKey = spellType === 'spellsPrepared' ? 'spellsPreparedUsed' : 'spellLikeAbilityUsed';
+    updatedCreature.offence.spellUsage = updatedCreature.offence.spellUsage ?? {};
+    updatedCreature.offence.spellUsage[usageKey] = updatedCreature.offence.spellUsage[usageKey] ?? {};
+    updatedCreature.offence.spellUsage[usageKey][spellId] = 0;
+  }
+
+  return updatedCreature;
 }
 
 /**
@@ -250,13 +279,28 @@ export function removeSpellFromCreature(creature, spellId, spellType) {
   const spellArray = creature.offence[fieldName] ?? [];
   const filtered = spellArray.filter(s => s.spellId !== spellId);
 
-  return {
+  const updatedCreature = {
     ...creature,
     offence: {
       ...creature.offence,
       [fieldName]: filtered
     }
   };
+
+  // Clean up slot data for prepared spells and SLAs
+  if (spellType === 'spellsPrepared' || spellType === 'spellLikeAbilities') {
+    const slotKey = spellType === 'spellsPrepared' ? 'spellsPreparedSlots' : 'spellLikeAbilityUsesPerDay';
+    const usageKey = spellType === 'spellsPrepared' ? 'spellsPreparedUsed' : 'spellLikeAbilityUsed';
+
+    if (updatedCreature.offence.spellSlots?.[slotKey]) {
+      delete updatedCreature.offence.spellSlots[slotKey][spellId];
+    }
+    if (updatedCreature.offence.spellUsage?.[usageKey]) {
+      delete updatedCreature.offence.spellUsage[usageKey][spellId];
+    }
+  }
+
+  return updatedCreature;
 }
 
 /**
