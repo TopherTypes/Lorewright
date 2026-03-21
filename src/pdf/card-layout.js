@@ -2,8 +2,8 @@
 // Provides measurements, positioning, and pagination calculations.
 
 // ── Card dimensions (inches) ────────────────────────────────────
-const CARD_WIDTH_IN = 2.5;
-const CARD_HEIGHT_IN = 3.5;
+const CARD_WIDTH_IN = 2.75;
+const CARD_HEIGHT_IN = 3.75;
 
 // ── Page dimensions (Letter: 8.5" × 11") ────────────────────────
 const PAGE_WIDTH_IN = 8.5;

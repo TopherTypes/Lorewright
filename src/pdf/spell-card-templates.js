@@ -58,52 +58,62 @@ export function createSpellCardHTML(spell) {
     `;
   }
 
+  // Add continuation indicator if present
+  const continuationIndicator = spell._continuation ? `<div style="font-size: 7pt; color: #8b8680; text-align: center; padding-top: 0.02in; border-top: 1px solid #d4cec4;">[continued]</div>` : '';
+
+  // Hide attributes and mechanics on continuation cards
+  const isContinuation = spell._continuation;
+  const attributesAndMechanics = isContinuation ? '' : `
+    <div class="card-attributes-row">
+      <div class="card-attribute">
+        <span class="card-attribute-icon">⚡</span>
+        <span class="card-attribute-value">${castingTime}</span>
+      </div>
+      <div class="card-attribute">
+        <span class="card-attribute-icon">📏</span>
+        <span class="card-attribute-value">${range}</span>
+      </div>
+      <div class="card-attribute">
+        <span class="card-attribute-icon">⌛</span>
+        <span class="card-attribute-value">${duration}</span>
+      </div>
+    </div>
+
+    <div class="card-mechanics-box">
+      <div class="card-row">
+        <div class="card-label">Components:</div>
+        <div class="card-value">${componentsStr}</div>
+      </div>
+      ${materialNote}
+      <div class="card-row">
+        <div class="card-label">Save:</div>
+        <div class="card-value">${savingThrow}</div>
+      </div>
+      <div class="card-row">
+        <div class="card-label">SR:</div>
+        <div class="card-value">${spellResistance}</div>
+      </div>
+      ${damageHtml}
+    </div>
+
+    <div class="card-divider"></div>
+  `;
+
   return `
     <div class="spell-card">
       <div class="card-header">
         <div class="card-name">${name}</div>
-        <div class="card-level-school">${level === 0 ? 'Cantrip' : `Level ${level}`} ${school ? '• ' + school : ''}</div>
+        <div class="card-level-school">${level === 0 ? 'Cantrip' : `Level ${level}`} ${school ? '• ' + school : ''}${isContinuation ? ' — [continued]' : ''}</div>
       </div>
 
-      <div class="card-attributes-row">
-        <div class="card-attribute">
-          <span class="card-attribute-icon">⚡</span>
-          <span class="card-attribute-value">${castingTime}</span>
-        </div>
-        <div class="card-attribute">
-          <span class="card-attribute-icon">📏</span>
-          <span class="card-attribute-value">${range}</span>
-        </div>
-        <div class="card-attribute">
-          <span class="card-attribute-icon">⌛</span>
-          <span class="card-attribute-value">${duration}</span>
-        </div>
-      </div>
-
-      <div class="card-mechanics-box">
-        <div class="card-row">
-          <div class="card-label">Components:</div>
-          <div class="card-value">${componentsStr}</div>
-        </div>
-        ${materialNote}
-        <div class="card-row">
-          <div class="card-label">Save:</div>
-          <div class="card-value">${savingThrow}</div>
-        </div>
-        <div class="card-row">
-          <div class="card-label">SR:</div>
-          <div class="card-value">${spellResistance}</div>
-        </div>
-        ${damageHtml}
-      </div>
-
-      <div class="card-divider"></div>
+      ${attributesAndMechanics}
 
       <div class="card-description">
         ${description.replace(/\n/g, '<br>')}
       </div>
 
       ${scalingHtml}
+      ${continuationIndicator}
     </div>
   `;
 }
