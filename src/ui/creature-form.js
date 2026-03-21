@@ -675,7 +675,7 @@ async function handleAddSpellBulk(form, spellType, root) {
   openSpellPickerModal({
     existingSpellIds: existingSpells,
     spellType: spellType,
-    onConfirm: (selectedSpells) => {
+    onConfirm: async (selectedSpells) => {
       console.log('[handleAddSpellBulk] Modal confirmed with spells:', selectedSpells);
       // Add each selected spell to the creature
       selectedSpells.forEach(spellRef => {
