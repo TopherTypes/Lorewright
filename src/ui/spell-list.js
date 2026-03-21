@@ -1,8 +1,9 @@
 // Spell list view.
 // Renders a table of all stored spells with links to edit and delete.
 
-import { getAllSpells, deleteSpell } from '../storage/spells.js';
+import { getAllSpells, deleteSpell, saveSpell } from '../storage/spells.js';
 import { getViewRoot } from './shell.js';
+import { openAoNImportModal } from './aon-import-modal.js';
 
 /**
  * Renders the spell list into the view root.
@@ -53,6 +54,9 @@ function renderListPage(spells) {
     <div class="page-header">
       <h1 class="page-title">Spell Library</h1>
       <div class="page-actions">
+        <button id="btn-import-aon" class="btn btn-secondary" title="Import from Archive of Nethys">
+          📋 Import from URL
+        </button>
         <a href="#/spell/new" class="btn btn-primary">+ New Spell</a>
       </div>
     </div>
@@ -109,6 +113,28 @@ function renderSpellRow(spell) {
 function attachListListeners(root) {
   // Track which delete button has been clicked once (pending confirmation)
   let pendingDeleteId = null;
+
+  // Handle import button click
+  const importBtn = root.querySelector('#btn-import-aon');
+  if (importBtn) {
+    importBtn.addEventListener('click', () => {
+      openAoNImportModal(
+        async (spell) => {
+          // User confirmed import
+          try {
+            await saveSpell(spell);
+            // Refresh the list to show the new spell
+            showSpellList();
+          } catch (err) {
+            alert(`Failed to save spell: ${err.message}`);
+          }
+        },
+        () => {
+          // User cancelled - do nothing
+        }
+      );
+    });
+  }
 
   // Handle delete button clicks
   root.addEventListener('click', async (event) => {
