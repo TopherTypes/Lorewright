@@ -316,22 +316,22 @@ export async function createSpellcasterCardHTML(creature, imageUrl, orientation 
     return levels;
   };
 
-  // Group spell IDs by level
-  const groupSpellIdsByLevel = (spellIds = []) => {
+  // Group spell IDs by level using resolved names
+  const groupSpellIdsByLevel = (spellIds = [], resolvedNames = {}) => {
     const levels = {};
     spellIds.forEach(spellRef => {
       const level = spellRef.level ?? 0;
       if (!levels[level]) levels[level] = [];
-      // Use spell name if available, fallback to spell ID
-      const displayName = spellRef.spellName || `Spell ID: ${spellRef.spellId.substring(0, 8)}`;
+      // Use resolved name, fallback to cached name, then fallback to 'Unknown'
+      const displayName = resolvedNames[spellRef.spellId] || spellRef.spellName || 'Unknown Spell';
       levels[level].push(escapeHtml(displayName));
     });
     return levels;
   };
 
   // Use linked spells if available, otherwise fall back to text
-  const preparedLevels = hasPreparedIds ? groupSpellIdsByLevel(offence.spellsPreparedIds) : (spellsPrepared ? parseSpellList(spellsPrepared) : {});
-  const knownLevels = hasKnownIds ? groupSpellIdsByLevel(offence.spellsKnownIds) : (spellsKnown ? parseSpellList(spellsKnown) : {});
+  const preparedLevels = hasPreparedIds ? groupSpellIdsByLevel(offence.spellsPreparedIds, resolvedPreparedNames) : (spellsPrepared ? parseSpellList(spellsPrepared) : {});
+  const knownLevels = hasKnownIds ? groupSpellIdsByLevel(offence.spellsKnownIds, resolvedKnownNames) : (spellsKnown ? parseSpellList(spellsKnown) : {});
 
   // Special abilities (first 2)
   const abilities = (creature.specialAbilities || []).slice(0, 2);
