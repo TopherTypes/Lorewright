@@ -241,7 +241,7 @@ export function renderDefenceSection(c) {
 
 // ── Helper for spell picker ───────────────────────────────
 
-async function renderSpellPickerList(spells = [], spellType = 'spellsKnown') {
+async function renderSpellPickerList(spells = [], spellType = 'spellsKnown', spellcastingAbility = 'int', abilityMods = {}) {
   const typeLabels = {
     'spellsKnown': 'Spells Known',
     'spellsPrepared': 'Spells Prepared',
@@ -258,15 +258,17 @@ async function renderSpellPickerList(spells = [], spellType = 'spellsKnown') {
     spellsByLevel[level].push(spellRef);
   });
 
-  // Resolve all spell names in parallel
-  const resolvedNames = await Promise.all(
-    spells.map(spellRef => resolveSpellName(spellRef))
+  // Resolve all spell details in parallel (name + save info)
+  const resolvedDetails = await Promise.all(
+    spells.map(spellRef => getSpellDetailWithSaveInfo(spellRef, spellcastingAbility, abilityMods))
   );
 
-  // Create a map of spellId -> resolved name for quick lookup
+  // Create maps for quick lookup
   const spellNameMap = {};
+  const spellSaveInfoMap = {};
   spells.forEach((spellRef, index) => {
-    spellNameMap[spellRef.spellId] = resolvedNames[index];
+    spellNameMap[spellRef.spellId] = resolvedDetails[index].name;
+    spellSaveInfoMap[spellRef.spellId] = resolvedDetails[index].saveInfo;
   });
 
   // Render grouped spells
@@ -279,9 +281,11 @@ async function renderSpellPickerList(spells = [], spellType = 'spellsKnown') {
 
     const spellItems = levelSpells.map((spellRef, i) => {
       const spellName = spellNameMap[spellRef.spellId];
+      const saveInfo = spellSaveInfoMap[spellRef.spellId];
+      const displayName = saveInfo ? `${spellName} ${saveInfo}` : spellName;
       return `
         <div class="spell-picker-item" data-spell-list="${spellType}" data-spell-id="${escapeHtml(spellRef.spellId)}" data-level="${level}">
-          <span class="spell-name">${escapeHtml(spellName)} - Level ${level}</span>
+          <span class="spell-name">${escapeHtml(displayName)} - Level ${level}</span>
           <button type="button" class="remove-item-btn" data-remove-spell="${spellType}" data-spell-id="${escapeHtml(spellRef.spellId)}" title="Remove">×</button>
         </div>
       `;
@@ -324,6 +328,31 @@ async function resolveSpellName(spellRef) {
     return spell?.name || spellRef.spellName || '(Unknown)';
   } catch (err) {
     return spellRef.spellName || '(Unknown)';
+  }
+}
+
+// Helper function to get spell details with save DC information
+async function getSpellDetailWithSaveInfo(spellRef, spellcastingAbility = 'int', abilityMods = {}) {
+  try {
+    const spell = await getSpellById(spellRef.spellId);
+    const name = spell?.name || spellRef.spellName || '(Unknown)';
+
+    // Check if spell has a saving throw
+    const savingThrow = spell?.savingThrow || 'None';
+    if (savingThrow === 'None' || !savingThrow) {
+      return { name, saveInfo: '' };
+    }
+
+    // Calculate DC = 10 + spellcasting ability modifier
+    const spellDcMod = abilityMods[spellcastingAbility] || 0;
+    const dc = 10 + spellDcMod;
+
+    // Extract just the type (e.g., "Fortitude" from "Fortitude save")
+    const saveType = savingThrow.split(/\s+/)[0].toUpperCase();
+
+    return { name, saveInfo: `[${saveType} DC ${dc}]` };
+  } catch (err) {
+    return { name: spellRef.spellName || '(Unknown)', saveInfo: '' };
   }
 }
 
@@ -416,10 +445,37 @@ export async function renderOffenceSection(c) {
     `;
   }
 
+  // Get spellcasting ability and modifiers for DC calculations
+  const spellcastingAbility = c.offence.spellcastingAbility ?? 'int';
+  const abilityMods = {
+    str: c.derived?.strMod || 0,
+    dex: c.derived?.dexMod || 0,
+    con: c.derived?.conMod || 0,
+    int: c.derived?.intMod || 0,
+    wis: c.derived?.wisMod || 0,
+    cha: c.derived?.chaMod || 0,
+  };
+
   // Render all spell picker lists (these need to resolve spell names from database)
-  const spellsKnownHtml = await renderSpellPickerList(c.offence.spellsKnownIds ?? [], 'spellsKnown');
-  const spellsPreparedHtml = await renderSpellPickerList(c.offence.spellsPreparedIds ?? [], 'spellsPrepared');
-  const spellLikeAbilitiesHtml = await renderSpellPickerList(c.offence.spellLikeAbilityIds ?? [], 'spellLikeAbilities');
+  const spellsKnownHtml = await renderSpellPickerList(c.offence.spellsKnownIds ?? [], 'spellsKnown', spellcastingAbility, abilityMods);
+  const spellsPreparedHtml = await renderSpellPickerList(c.offence.spellsPreparedIds ?? [], 'spellsPrepared', spellcastingAbility, abilityMods);
+  const spellLikeAbilitiesHtml = await renderSpellPickerList(c.offence.spellLikeAbilityIds ?? [], 'spellLikeAbilities', spellcastingAbility, abilityMods);
+
+  // Check if creature has any spells
+  const hasAnySpells = (spellsKnownIds.length > 0) || (spellsPreparedIds.length > 0) || (spellLikeAbilityIds.length > 0);
+
+  // Render spellcasting ability dropdown (only if creature has spells)
+  const spellcastingAbilityOptions = [
+    { label: 'STR', value: 'str' },
+    { label: 'DEX', value: 'dex' },
+    { label: 'CON', value: 'con' },
+    { label: 'INT', value: 'int' },
+    { label: 'WIS', value: 'wis' },
+    { label: 'CHA', value: 'cha' },
+  ];
+  const spellcastingAbilityContent = hasAnySpells
+    ? field('Spellcasting Ability', selectInput('offence.spellcastingAbility', spellcastingAbilityOptions, c.offence.spellcastingAbility ?? 'int'))
+    : '';
 
   return section('Offence', `
     <div class="form-grid-3">
@@ -439,6 +495,7 @@ export async function renderOffenceSection(c) {
     </div>
     ${field('Spells Known',         spellsKnownHtml)}
     ${hasSpellsKnown ? field('Spell Slots', spellSlotsContent) : ''}
+    ${spellcastingAbilityContent}
     ${field('Spells Prepared',      spellsPreparedHtml)}
     ${spellsPreparedIds.length > 0 ? field('Prepared Spell Slots', preparedSlotsContent) : ''}
     ${field('Spell-Like Abilities', spellLikeAbilitiesHtml)}

@@ -106,6 +106,7 @@ export function createEmptyCreature() {
         spellsPreparedUsed: {},
         spellLikeAbilityUsed: {},
       },
+      spellcastingAbility: 'int',
     },
     statistics: {
       str: 10,
