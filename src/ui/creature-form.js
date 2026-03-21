@@ -5,6 +5,7 @@
 
 import { getCreatureById, saveCreature } from '../storage/creatures.js';
 import { createEmptyCreature, deriveCreature, addSpellToCreature, removeSpellFromCreature } from '../entities/creature.js';
+import { getSpellById } from '../storage/spells.js';
 import { getViewRoot } from './shell.js';
 import { formatModifier, formatCR, formatXP } from '../utils/formatters.js';
 import { STANDARD_SKILLS } from '../utils/pf1e-modifiers.js';
@@ -139,6 +140,14 @@ function formClickHandler(event) {
     return;
   }
 
+  // Spell: remove (check before generic .remove-item-btn)
+  const removeSpellBtn = target.closest('[data-remove-spell]');
+  if (removeSpellBtn) {
+    console.log('[formClickHandler] Remove spell button triggered, spellType:', removeSpellBtn.dataset.removeSpell, 'spellId:', removeSpellBtn.dataset.spellId);
+    handleRemoveSpell(form, removeSpellBtn.dataset.removeSpell, removeSpellBtn.dataset.spellId, root);
+    return;
+  }
+
   // Dynamic list: remove item
   const removeBtn = target.closest('.remove-item-btn');
   if (removeBtn) {
@@ -215,13 +224,6 @@ function formClickHandler(event) {
   const removeRangedBtn = target.closest('[data-remove-ranged]');
   if (removeRangedBtn) {
     handleRemoveRangedAttack(form, parseInt(removeRangedBtn.dataset.removeRanged, 10), root);
-    return;
-  }
-
-  // Spell: remove
-  const removeSpellBtn = target.closest('[data-remove-spell]');
-  if (removeSpellBtn) {
-    handleRemoveSpell(form, removeSpellBtn.dataset.removeSpell, removeSpellBtn.dataset.spellId, root);
     return;
   }
 
@@ -375,6 +377,34 @@ function readFormData(form, base) {
     });
     creature.offence.ranged = rangedAttacks;
   }
+
+  // ── Spells (structured list with spell ID and level) ──────
+  const spellTypes = [
+    { type: 'spellsKnown', hasLevel: true },
+    { type: 'spellsPrepared', hasLevel: true },
+    { type: 'spellLikeAbilities', hasLevel: false },
+  ];
+
+  spellTypes.forEach(({ type, hasLevel }) => {
+    const spellElements = form.querySelectorAll(`[data-spell-list="${type}"]`);
+    const spells = [];
+    spellElements.forEach((el) => {
+      const spellId = el.dataset.spellId;
+      const level = hasLevel ? parseInt(el.dataset.level ?? '0', 10) : undefined;
+      if (spellId) {
+        if (hasLevel) {
+          spells.push({ spellId, level: level ?? 0 });
+        } else {
+          spells.push({ spellId });
+        }
+      }
+    });
+    const fieldName = type === 'spellsKnown' ? 'spellsKnownIds' :
+                      type === 'spellsPrepared' ? 'spellsPreparedIds' :
+                      'spellLikeAbilityIds';
+    creature.offence[fieldName] = spells;
+    console.log(`[readFormData] Spell type "${type}": ${spells.length} spells found`);
+  });
 
   return creature;
 }
@@ -739,6 +769,47 @@ function getNestedValue(obj, path) {
   return path.split('.').reduce((current, key) => current?.[key], obj);
 }
 
+// ── Spell validation ──────────────────────────────────────
+
+/**
+ * Validates and removes broken spell links from a creature.
+ * A broken link is a spell ID that doesn't exist in the spell library.
+ * @param {object} creature  The creature to validate
+ * @returns {Promise<object>} The creature with broken links removed
+ */
+async function validateAndRemoveBrokenSpellLinks(creature) {
+  const spellFields = ['spellsKnownIds', 'spellsPreparedIds', 'spellLikeAbilityIds'];
+  let brokenCount = 0;
+
+  for (const field of spellFields) {
+    const spells = creature.offence[field] ?? [];
+    const validSpells = [];
+
+    for (const spell of spells) {
+      try {
+        const spellData = await getSpellById(spell.spellId);
+        if (spellData) {
+          validSpells.push(spell);
+        } else {
+          console.warn(`[validateSpells] Spell ${spell.spellId} not found in library (${field})`);
+          brokenCount++;
+        }
+      } catch (err) {
+        console.warn(`[validateSpells] Error checking spell ${spell.spellId}: ${err.message}`);
+        brokenCount++;
+      }
+    }
+
+    creature.offence[field] = validSpells;
+  }
+
+  if (brokenCount > 0) {
+    console.log(`[validateSpells] Removed ${brokenCount} broken spell links`);
+  }
+
+  return creature;
+}
+
 // ── Save logic ────────────────────────────────────────────
 
 function markDirty(root) {
@@ -770,6 +841,14 @@ async function saveNow(root) {
     const updated = readFormData(form, activeCreature);
     activeCreature = updated;
     console.log('[saveNow] Form data read and creature updated');
+  }
+
+  // Validate and remove broken spell links
+  try {
+    activeCreature = await validateAndRemoveBrokenSpellLinks(activeCreature);
+  } catch (err) {
+    console.error('[saveNow] Error validating spells:', err);
+    // Continue saving even if validation fails
   }
 
   activeCreature.meta.updatedAt = new Date().toISOString();

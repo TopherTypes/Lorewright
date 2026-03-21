@@ -84,6 +84,7 @@ async function generateSpellCards(spell) {
   container.style.position = 'absolute';
   container.style.left = '-9999px';
   container.style.top = '-9999px';
+  container.style.contain = 'layout style paint';  // Isolate layout context to prevent reflow thrashing
   const { widthPx, heightPx } = getCardDimensionsPx();
   container.style.width = `${widthPx}px`;
   container.style.height = `${heightPx}px`;
@@ -112,10 +113,23 @@ async function generateSpellCards(spell) {
   container.innerHTML += html;
   document.body.appendChild(container);
 
+  // Defer layout checking to after stylesheets have loaded
+  const checkOverflow = () => new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      try {
+        // Check if content overflows
+        const descriptionElement = container.querySelector('.card-description');
+        const hasOverflow = descriptionElement && descriptionElement.scrollHeight > descriptionElement.clientHeight;
+        resolve(hasOverflow);
+      } catch (err) {
+        console.error('Error checking overflow:', err);
+        resolve(false);  // Default to no overflow on error
+      }
+    });
+  });
+
   try {
-    // Check if content overflows
-    const descriptionElement = container.querySelector('.card-description');
-    const hasOverflow = descriptionElement && descriptionElement.scrollHeight > descriptionElement.clientHeight;
+    const hasOverflow = await checkOverflow();
 
     if (!hasOverflow) {
       // Single card is sufficient
