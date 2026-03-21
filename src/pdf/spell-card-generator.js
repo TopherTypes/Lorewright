@@ -89,26 +89,9 @@ async function generateSpellCards(spell) {
   container.style.width = `${widthPx}px`;
   container.style.height = `${heightPx}px`;
 
-  // Add styles and HTML
+  // Add complete styles to match what html2canvas will render
   const style = document.createElement('style');
-  style.textContent = `
-    * { box-sizing: border-box; }
-    .spell-card {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      padding: 0.1in;
-      background: #f5f1e6;
-      font-family: Georgia, serif;
-      font-size: 10pt;
-      color: #2c2416;
-      border: 2px solid #8b8680;
-      overflow: hidden;
-      page-break-inside: avoid;
-    }
-    .card-description { flex: 1; overflow: hidden; }
-  `;
+  style.textContent = getSpellCardStyles();
   container.appendChild(style);
   container.innerHTML += html;
   document.body.appendChild(container);
@@ -126,8 +109,10 @@ async function generateSpellCards(spell) {
             return;
           }
 
-          // Add 10px threshold to account for rounding and sub-pixel rendering
-          const overflowThreshold = 10;
+          // Add large threshold (100px) to account for layout differences between
+          // the temporary container and html2canvas rendering. Only split if there's
+          // actually substantial overflow, not just pixel-level misalignment.
+          const overflowThreshold = 100;
           const hasOverflow = descriptionElement.scrollHeight > (descriptionElement.clientHeight + overflowThreshold);
           resolve(hasOverflow);
         } catch (err) {
