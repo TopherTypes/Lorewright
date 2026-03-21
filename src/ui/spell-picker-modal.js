@@ -23,6 +23,17 @@ export async function openSpellPickerModal(options = {}) {
   // Fetch all spells and schools for filtering
   const allSpells = await getAvailableSpells();
   console.log('[spell-picker] Fetched spells:', allSpells.length, 'spells', allSpells);
+  if (allSpells.length > 0) {
+    console.log('[spell-picker] First spell structure:', {
+      keys: Object.keys(allSpells[0]),
+      meta: allSpells[0].meta,
+      name: allSpells[0].name,
+      level: allSpells[0].level,
+      school: allSpells[0].school,
+      castingTime: allSpells[0].castingTime,
+      fullSpell: allSpells[0]
+    });
+  }
   const schools = await getAllSpellSchools();
   console.log('[spell-picker] Available schools:', schools);
 
@@ -83,7 +94,7 @@ function renderSpellPickerModalHTML(state, spellType) {
   const spellRows = state.filteredSpells.map(spell => {
     const isSelected = state.selectedIds.has(spell.meta.id);
     const checked = isSelected ? 'checked' : '';
-    return `
+    const row = `
       <div class="spell-picker-row" data-spell-id="${escapeHtml(spell.meta.id)}">
         <input type="checkbox" class="spell-picker-checkbox" ${checked} />
         <div class="spell-info">
@@ -94,7 +105,11 @@ function renderSpellPickerModalHTML(state, spellType) {
         </div>
       </div>
     `;
+    return row;
   }).join('');
+  if (state.filteredSpells.length > 0) {
+    console.log('[spell-picker] Rendering spells. First row HTML:', spellRows.split('\n').slice(0, 8).join('\n'));
+  }
 
   return `
     <div class="modal-overlay" id="spell-picker-overlay">
