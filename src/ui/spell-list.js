@@ -4,6 +4,7 @@
 import { getAllSpells, deleteSpell, saveSpell } from '../storage/spells.js';
 import { getViewRoot } from './shell.js';
 import { openTextImportModal } from './text-import-modal.js';
+import { navigate } from './router.js';
 
 /**
  * Renders the spell list into the view root.
@@ -123,8 +124,9 @@ function attachListListeners(root) {
           // User confirmed import
           try {
             await saveSpell(spell);
-            // Refresh the list to show the new spell
-            showSpellList();
+            // Navigate to spell edit page with all sections expanded
+            sessionStorage.setItem('expandAllDetails', 'true');
+            navigate('#/spell/' + spell.meta.id);
           } catch (err) {
             alert(`Failed to save spell: ${err.message}`);
           }
