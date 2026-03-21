@@ -246,7 +246,19 @@ export async function createSpellcasterCardHTML(creature, imageUrl, orientation 
   // Spellcasting
   const spellSlots = offence.spellSlots || {};
   const clevel = spellSlots.casterLevel || offence.clevel || stats.clevel || 1;
-  const spellSaveDc = stats.spellSaveDc || 10 + (stats.intMod || stats.wisMod || 0);
+
+  // Calculate spell save DC using selected spellcasting ability
+  const spellcastingAbility = offence.spellcastingAbility || 'int';
+  const abilityModMap = {
+    str: stats.strMod || 0,
+    dex: stats.dexMod || 0,
+    con: stats.conMod || 0,
+    int: stats.intMod || 0,
+    wis: stats.wisMod || 0,
+    cha: stats.chaMod || 0,
+  };
+  const spellDcMod = abilityModMap[spellcastingAbility] || 0;
+  const spellSaveDc = stats.spellSaveDc || (10 + spellDcMod);
   const concentration = stats.concentration || 0;
 
   // Spell list parsing - adaptive to what's present
@@ -273,26 +285,46 @@ export async function createSpellcasterCardHTML(creature, imageUrl, orientation 
     }
   };
 
-  // Resolve all spell names upfront
+  // Helper to get spell name with save DC info
+  const getSpellNameWithSaveInfo = async (spellRef) => {
+    try {
+      const spell = await getSpellById(spellRef.spellId);
+      const name = spell?.name || spellRef.spellName || 'Unknown Spell';
+
+      // Check if spell has a saving throw
+      const savingThrow = spell?.savingThrow || 'None';
+      if (savingThrow === 'None' || !savingThrow) {
+        return name;
+      }
+
+      // Extract save type (e.g., "Fortitude" from "Fortitude save")
+      const saveType = savingThrow.split(/\s+/)[0].toUpperCase();
+      return `${name} [${saveType} DC ${spellSaveDc}]`;
+    } catch (err) {
+      return spellRef.spellName || 'Unknown Spell';
+    }
+  };
+
+  // Resolve all spell names upfront with save DC info
   let resolvedPreparedNames = {};
   let resolvedKnownNames = {};
   let resolvedAbilityNames = {};
 
   if (hasPreparedIds) {
     for (const spellRef of offence.spellsPreparedIds) {
-      resolvedPreparedNames[spellRef.spellId] = await resolveSpellName(spellRef);
+      resolvedPreparedNames[spellRef.spellId] = await getSpellNameWithSaveInfo(spellRef);
     }
   }
 
   if (hasKnownIds) {
     for (const spellRef of offence.spellsKnownIds) {
-      resolvedKnownNames[spellRef.spellId] = await resolveSpellName(spellRef);
+      resolvedKnownNames[spellRef.spellId] = await getSpellNameWithSaveInfo(spellRef);
     }
   }
 
   if (hasLikeAbilityIds) {
     for (const spellRef of offence.spellLikeAbilityIds) {
-      resolvedAbilityNames[spellRef.spellId] = await resolveSpellName(spellRef);
+      resolvedAbilityNames[spellRef.spellId] = await getSpellNameWithSaveInfo(spellRef);
     }
   }
 
